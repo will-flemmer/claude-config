@@ -151,10 +151,10 @@ Before marking any task as complete:
 ### Pull Request Guidelines
 When creating pull requests:
 - **Title**: Use the commit message as the PR title
-- **Description**: Include only:
-  - Short summary (less than 120 characters)
-  - Specific smoke tests performed
-- Keep description very concise
+- **Description**: **MUST be very concise (under 200 characters total)** and include:
+  - **MANDATORY**: Brief summary (max 60 characters)
+  - **MANDATORY**: List specific manual smoke tests performed (not unit tests)
+  - Example: "Added user auth. Smoke tests: login page loads, valid/invalid credentials, logout redirects"
 
 ## Project Commands
 
