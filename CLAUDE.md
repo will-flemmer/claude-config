@@ -141,3 +141,7 @@ Before marking any task as complete:
 4. **Verification**: Ensure changes work as expected and all tests pass
 5. **Only then** report the task as complete to the user
 
+## Project Commands
+
+When working in a project, always check for a `Justfile` which contains useful commands that can be run via `just <command>`. These files typically contain project-specific commands for building, testing, linting, and other common development tasks.
+
