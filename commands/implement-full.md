@@ -8,7 +8,7 @@ Comprehensive workflow command that implements a coding task using the Explore, 
 1. **Phase 1**: Implementation (Explore, Plan, Code)
 2. **Phase 2**: PR Creation and Commit
 3. **Phase 3**: PR Checks Monitoring
-4. **Phase 4**: Code Review and Iteration
+4. **Phase 4**: Completion
 
 **The agent MUST complete ALL phases. Do NOT stop after Phase 1.**
 
@@ -28,7 +28,7 @@ I need you to complete the ENTIRE implement-full workflow for the following task
 
 TASK: [TASK DESCRIPTION]
 
-YOU MUST COMPLETE ALL 4 PHASES. DO NOT STOP UNTIL THE PR IS CREATED AND REVIEWED.
+YOU MUST COMPLETE ALL 4 PHASES. DO NOT STOP UNTIL THE PR IS CREATED AND CHECKS PASS.
 
 PHASE 1: IMPLEMENTATION
 ======================
@@ -101,7 +101,7 @@ After completing implementation, you MUST:
    - [ ] 100% test coverage
    - [ ] Functions < 20 lines
    - [ ] Cyclomatic complexity < 5
-   - [ ] At least 2 assertions per function
+   - [ ] At least 1 assertion per function if over 5 lines
    - [ ] Error handling implemented
    - [ ] No code duplication
    
@@ -124,21 +124,9 @@ After creating the PR, you MUST:
 
 3. Continue until ALL checks pass
 
-PHASE 4: CODE REVIEW (MANDATORY - DO NOT SKIP)
-==============================================
-After all checks pass, you MUST:
-
-1. Get the PR URL from Phase 2
-
-2. Initiate a code review using:
-   /review-pr [PR-URL]
-
-3. Address ALL review feedback:
-   - Make requested changes
-   - Commit with descriptive messages
-   - Push to update the PR
-
-4. Continue iterating until the reviewer approves
+PHASE 4: COMPLETION
+==================
+After all checks pass, the workflow is complete.
 
 COMPLETION CRITERIA
 ==================
@@ -146,8 +134,6 @@ The workflow is ONLY complete when:
 ✅ Implementation is done with 100% test coverage
 ✅ PR is created with comprehensive description
 ✅ All PR checks pass
-✅ Code review feedback is addressed
-✅ PR is approved by reviewer
 
 DO NOT STOP until ALL criteria are met.
 ```
@@ -192,24 +178,20 @@ This phase ensures all automated checks pass before proceeding to review.
 
 **Common Mistake**: Not waiting for checks or ignoring failures.
 
-### Phase 4: Code Review Loop
+### Phase 4: Completion
 
-This phase involves getting the code reviewed and addressing all feedback.
+This phase marks the end of the workflow after all checks pass.
 
 **Key Activities:**
-- Initiate automated code review
-- Read all review comments
-- Make requested changes
-- Commit and push updates
-- Continue until approved
+- Verify all checks have passed
+- Confirm PR is ready for review by others
 
-**Common Mistake**: Not addressing all feedback or stopping after first review.
+**Common Mistake**: Stopping before all checks pass.
 
 ## Requirements
 
 - **Git**: Must be in a git repository
 - **GitHub CLI (`gh`)**: Must be installed and authenticated
-- **Claude Code**: Must have access to `/review-pr` command
 - **Repository Access**: Must have permissions to create branches and PRs
 
 ## Troubleshooting
@@ -221,7 +203,7 @@ This phase involves getting the code reviewed and addressing all feedback.
 **Solution**: 
 1. Explicitly remind the agent about ALL 4 phases
 2. Copy the complete workflow prompt above
-3. Emphasize "DO NOT STOP until the PR is created and reviewed"
+3. Emphasize "DO NOT STOP until the PR is created and checks pass"
 
 ### PR Creation Fails
 
@@ -241,22 +223,13 @@ This phase involves getting the code reviewed and addressing all feedback.
 - Check GitHub Actions tab in the repository
 - Look for configuration issues in CI/CD
 
-### Review Command Not Found
-
-**Problem**: `/review-pr` command is not recognized.
-
-**Solutions**:
-- Ensure you're using Claude Code (not regular Claude)
-- Check that the review-pr command is properly configured
-- Try using the full command syntax with the PR URL
 
 ## Best Practices
 
 1. **Clear Task Descriptions**: Be specific about what needs to be implemented
 2. **Follow TDD Strictly**: Never write code without a failing test first
 3. **Complete All Phases**: Don't let the agent stop early
-4. **Address All Feedback**: Ensure every review comment is resolved
-5. **Verify Completion**: Check that the PR exists and has been reviewed
+4. **Verify Completion**: Check that the PR exists and all checks pass
 
 ## Example Execution
 
@@ -265,7 +238,7 @@ I need you to complete the ENTIRE implement-full workflow for the following task
 
 TASK: Create a user authentication system with JWT tokens
 
-YOU MUST COMPLETE ALL 4 PHASES. DO NOT STOP UNTIL THE PR IS CREATED AND REVIEWED.
+YOU MUST COMPLETE ALL 4 PHASES. DO NOT STOP UNTIL THE PR IS CREATED AND CHECKS PASS.
 
 [... rest of the workflow prompt ...]
 ```
@@ -277,17 +250,14 @@ The agent should then:
 4. ✅ Create branch and commit
 5. ✅ Push and create PR
 6. ✅ Monitor PR checks
-7. ✅ Run code review
-8. ✅ Address feedback
-9. ✅ Continue until approved
+7. ✅ Verify all checks pass
 
 ## Common Pitfalls to Avoid
 
 1. **Stopping After Implementation**: The workflow is NOT complete after coding
 2. **Skipping Tests**: TDD means tests MUST come first
-3. **Ignoring Checks**: Failed checks must be fixed before review
-4. **Incomplete Reviews**: ALL feedback must be addressed
-5. **No Smoke Testing**: Manual testing is required before committing
+3. **Ignoring Checks**: Failed checks must be fixed
+4. **No Smoke Testing**: Manual testing is required before committing
 
 ## Verification Checklist
 
@@ -297,8 +267,5 @@ Before considering the workflow complete, verify:
 - [ ] Branch is created and pushed
 - [ ] PR is opened with proper description
 - [ ] All PR checks pass
-- [ ] Code review has been conducted
-- [ ] All review feedback is addressed
-- [ ] PR is approved
 
 Only when ALL items are checked is the workflow truly complete.

@@ -15,6 +15,7 @@ These guidelines apply ALL code written. This include, application code as well 
 3. **Refactor after EVERY green test**
 4. **Review code after each complete TDD cycle**
 5. **Commit after each RED→GREEN→REFACTOR cycle**
+   - Commit messages must be a single line, 60 characters or less
 
 ## Code Quality Standards
 
@@ -26,7 +27,7 @@ These guidelines apply ALL code written. This include, application code as well 
 - No nested loops beyond 2 levels
 
 ### 2. NASA-Inspired Safety Rules
-- **At least 2 assertions per function**
+- **At least 1 assertion per function if over 5 lines, otherwise zero**
 - **Check all return values**
 
 ### 3. DRY (Don't Repeat Yourself)
@@ -71,7 +72,7 @@ After each TDD cycle, verify:
 - [ ] Code is simpler than before refactoring
 - [ ] No code duplication
 - [ ] Function names clearly describe what they do
-- [ ] At least 2 assertions per function
+- [ ] At least 1 assertion per function if over 5 lines
 - [ ] Error cases are handled
 - [ ] No commented-out code
 
@@ -125,7 +126,7 @@ Before marking any task as complete:
    - Maximum function length: 20 lines
    - Maximum cyclomatic complexity: 5
    - No nested loops beyond 2 levels
-   - At least 2 assertions per function
+   - At least 1 assertion per function if over 5 lines
    - All return values checked
    - No code duplication
    - Descriptive names for all functions and variables
@@ -140,6 +141,20 @@ Before marking any task as complete:
    - Manually test the feature as a user would use it
 4. **Verification**: Ensure changes work as expected and all tests pass
 5. **Only then** report the task as complete to the user
+
+## Tools
+
+### Required Tools
+- **Git CLI (`git`)**: Used for version control operations including commits, branches, and repository management
+- **GitHub CLI (`gh`)**: Used for GitHub operations including creating pull requests, managing issues, and viewing repository information
+
+### Pull Request Guidelines
+When creating pull requests:
+- **Title**: Use the commit message as the PR title
+- **Description**: Include only:
+  - Short summary (less than 120 characters)
+  - Specific smoke tests performed
+- Keep description very concise
 
 ## Project Commands
 
