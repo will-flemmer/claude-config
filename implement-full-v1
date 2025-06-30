@@ -1,0 +1,19 @@
+can you add a new command called "implement-full" which will take a        │
+│   description of the code task and use the Explore, plan, code workflow to   │
+│   implement the solution. also note that TDD should be used and all coding   │
+│   guidelines should be followed. also all quality checks should pass before  │
+│   considering the task as complete (e.g tests, static analysis). once code   │
+│   is written create a new branch and commit the changes up to github, with   │
+│   a meaningful description and a list of the smoke tests completed. wait     │
+│   for the PR checks to complete and then verify they all pass. if PR checks  │
+│   fail, fix them then wait for them to complete. once all PR checks pass     │
+│   you should then create a new file which saves the newly created PR url,    │
+│   call this pr-url.txt . Then clear your history by running the "clear"      │
+│   command. you are now in code review mode, so run the "review-pr" command   │
+│   with the url from pr-url.txt. For this review you should leave comments    │
+│   on github. Once the review is complete run "clear" again. you are now in   │
+│   code mode again. action the comments left on the PR and then push changes  │
+│   in new commit. Once again, wait for the PR checks to pass, then go back    │
+│   into review mode. Continue iterating like this until all PR comments are   │
+│   addressed. Once the reviewer is happy the task is considered done, at      │
+│   that point I will review the PR and give further feedback  
