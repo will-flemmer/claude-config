@@ -44,6 +44,20 @@ The command displays:
 2. All check runs with their current status
 3. For failed checks: detailed logs (truncated to 100 lines per check)
 
+## Analyzing Failed Checks
+
+When a check fails, the command automatically fetches and displays the logs. To effectively debug failures:
+
+1. **Review the error output**: Failed checks show the last 100 lines of logs
+2. **Get full logs**: Use `check-logs.sh <pr-url>` to see complete logs without truncation
+3. **Look for specific error messages**: Common patterns include:
+   - Test failures with stack traces
+   - Linting errors with file:line references
+   - Build errors with compilation messages
+   - Type checking errors with specific type mismatches
+4. **Identify the root cause**: The logs typically show the exact command that failed and why
+5. **Cross-reference with local environment**: Ensure your local setup matches the CI environment
+
 ## Post-Check Actions
 
 Once all checks are complete, the agent should:
