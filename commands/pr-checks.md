@@ -2,6 +2,8 @@
 
 Check the status of GitHub pull request checks and view logs for failed checks with automatic watch functionality.
 
+**IMPORTANT**: Always use the provided `pr-checks.sh` script. Do NOT run custom `gh` commands directly.
+
 ## Usage
 
 ```bash
@@ -62,16 +64,19 @@ When a check fails, the command automatically fetches and displays the logs. To 
 
 The agent should follow this iterative process:
 
-1. **Run pr-checks with watch mode**: `pr-checks.sh <pr-url> --watch`
+1. **Run pr-checks with watch mode**: `./commands/pr-checks.sh <pr-url> --watch`
 2. **When checks fail**:
-   - Analyze the failure logs
+   - Analyze the failure logs (use `./commands/check-logs.sh <pr-url>` for full logs)
    - Fix the identified issues in the code
-   - Use `commit-and-push.sh "fix: <description>"` to commit and push
+   - Use `./commands/commit-and-push.sh "fix: <description>"` to commit and push
 3. **Continue watching**: The pushed changes will trigger new checks
 4. **Repeat until all checks pass**: Keep the watch mode running and fix any new failures
 5. **Success**: Only stop when all checks show as passed
 
-**Important**: After pushing fixes, do NOT exit. Keep watching the PR to ensure the fixes resolve all issues.
+**Important**: 
+- After pushing fixes, do NOT exit. Keep watching the PR to ensure the fixes resolve all issues
+- Always use the provided scripts (pr-checks.sh, check-logs.sh, commit-and-push.sh)
+- Do NOT run custom `gh` or `git` commands directly
 
 ## Error Handling
 

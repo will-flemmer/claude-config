@@ -2,10 +2,12 @@
 
 Create and push commits with automatic message length validation.
 
+**IMPORTANT**: Always use the provided `commit-and-push.sh` script. Do NOT run custom `git` commands directly.
+
 ## Usage
 
 ```bash
-commit-and-push.sh <commit-message>
+./commands/commit-and-push.sh <commit-message>
 ```
 
 ## Features
@@ -19,11 +21,13 @@ commit-and-push.sh <commit-message>
 
 ```bash
 # Valid commit (under 60 characters)
-commit-and-push.sh "fix: update validation logic"
+./commands/commit-and-push.sh "fix: update validation logic"
 
 # Invalid commit (over 60 characters) - will fail
-commit-and-push.sh "this is a very long commit message that exceeds the sixty character limit"
+./commands/commit-and-push.sh "this is a very long commit message that exceeds the sixty character limit"
 ```
+
+**Note**: Never use `git add`, `git commit`, or `git push` directly. Always use this script.
 
 ## Requirements
 

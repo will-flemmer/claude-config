@@ -60,26 +60,12 @@ After completing implementation, you MUST:
 2. Create the branch and switch to it:
    git checkout -b [branch-name]
 
-3. Stage all changes:
-   git add .
-
-4. Create a comprehensive commit with smoke test results:
-   git commit -m "feat: [task description]
-
-   Implemented using TDD methodology:
-   - [list key features implemented]
-   - 100% test coverage achieved
-   - All quality standards met
+3. Use the commit-and-push script for committing:
+   ./commands/commit-and-push.sh "feat: [short task description]"
    
-   Smoke Test Results:
-   - [list all manual tests performed]
-   - [confirm all functionality works as expected]
-   
-   🤖 Generated with Claude Code
-   
-   Co-Authored-By: Claude <noreply@anthropic.com>"
+   **IMPORTANT**: Keep commit message under 60 characters. Use the PR description for detailed information.
 
-5. Push the branch:
+4. If you need to push a new branch:
    git push -u origin [branch-name]
 
 6. Create the pull request:
@@ -113,16 +99,18 @@ PHASE 3: PR CHECKS (MANDATORY - DO NOT SKIP)
 ============================================
 After creating the PR, you MUST:
 
-1. Wait for PR checks to complete:
-   gh pr checks --watch
+1. Use the pr-checks script to monitor:
+   ./commands/pr-checks.sh [PR-URL] --watch
 
 2. If any checks fail:
-   - View the detailed logs
+   - Use ./commands/check-logs.sh [PR-URL] for detailed logs
    - Fix the issues
-   - Commit and push the fixes
-   - Wait for checks to re-run
+   - Use ./commands/commit-and-push.sh "fix: [description]" to push fixes
+   - Continue watching with pr-checks.sh
 
 3. Continue until ALL checks pass
+
+**IMPORTANT**: Always use the provided scripts. Never run raw git or gh commands.
 
 PHASE 4: COMPLETION
 ==================
