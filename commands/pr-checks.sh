@@ -139,7 +139,8 @@ get_pr_checks() {
     
     # Check if any checks are in progress
     local in_progress_checks
-    in_progress_checks=$(echo "$checks" | grep -E "(pending|in_progress|queued|requested)" || true)
+    in_progress_checks=$(echo "$checks" | grep -E "(pending|in_progress|queued|requested|running|waiting|expected)" || true)
+    
     
     if [ -n "$in_progress_checks" ] && [ "$WATCH_MODE" = false ]; then
         echo "⏳ Checks are in progress. Enabling watch mode..."

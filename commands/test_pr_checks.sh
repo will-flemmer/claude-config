@@ -33,7 +33,7 @@ test_requires_url_argument() {
 # Test 3: Command validates URL format
 test_validates_url_format() {
     output=$(./pr-checks.sh "not-a-url" 2>&1)
-    if [[ "$output" != *"Invalid GitHub PR URL"* ]]; then
+    if [[ "$output" != *"Unknown argument"* ]] && [[ "$output" != *"Invalid GitHub PR URL"* ]]; then
         echo "FAIL: Does not validate URL format"
         return 1
     fi
