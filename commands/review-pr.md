@@ -51,7 +51,8 @@ Your review should include:
 - Performance concerns
 
 ### 4. Suggestions
-- Specific improvements with examples
+- Only include significant improvements that impact functionality, security, or maintainability
+- Skip minor style preferences, formatting suggestions, or subjective improvements
 - Alternative approaches if applicable
 
 ### 5. Testing
@@ -77,6 +78,8 @@ When `leave_comments=true`:
 3. Structure your comments to be:
    - Constructive and specific
    - Reference line numbers or code sections
+   - Focus on significant issues only (bugs, security, performance, functionality)
+   - Skip minor style preferences or formatting suggestions
    - Provide examples of improvements
    - Group related comments together
 
