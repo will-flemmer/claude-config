@@ -2,21 +2,57 @@
 
 # Function to display usage
 show_usage() {
-    echo "Usage: pr-checks.sh <github-pr-url>"
+    echo "Usage: pr-checks.sh <github-pr-url> [--watch] [--interval=seconds]"
     echo "Example: pr-checks.sh https://github.com/owner/repo/pull/123"
+    echo "         pr-checks.sh https://github.com/owner/repo/pull/123 --watch"
+    echo "         pr-checks.sh https://github.com/owner/repo/pull/123 --interval=30"
+    echo ""
+    echo "Options:"
+    echo "  --watch              Watch checks until they finish (auto-enabled if checks are in progress)"
+    echo "  --interval=N         Set watch interval in seconds (default: 10)"
 }
 
-# Function to validate inputs
-validate_inputs() {
-    # Assert: Must have exactly one argument
-    if [ $# -ne 1 ]; then
-        show_usage
-        exit 1
-    fi
+# Function to parse arguments
+parse_arguments() {
+    WATCH_MODE=false
+    WATCH_INTERVAL=10
+    PR_URL=""
     
-    # Assert: Argument must not be empty
-    if [ -z "$1" ]; then
-        echo "Error: URL cannot be empty"
+    while [ $# -gt 0 ]; do
+        case $1 in
+            --watch)
+                WATCH_MODE=true
+                shift
+                ;;
+            --interval=*)
+                WATCH_INTERVAL="${1#*=}"
+                if ! [[ "$WATCH_INTERVAL" =~ ^[0-9]+$ ]] || [ "$WATCH_INTERVAL" -lt 1 ]; then
+                    echo "Error: Invalid interval value. Must be a positive integer."
+                    exit 1
+                fi
+                shift
+                ;;
+            https://github.com/*)
+                if [ -n "$PR_URL" ]; then
+                    echo "Error: Multiple URLs provided"
+                    show_usage
+                    exit 1
+                fi
+                PR_URL="$1"
+                shift
+                ;;
+            *)
+                echo "Error: Unknown argument: $1"
+                show_usage
+                exit 1
+                ;;
+        esac
+    done
+    
+    # Assert: Must have a URL
+    if [ -z "$PR_URL" ]; then
+        echo "Error: GitHub PR URL is required"
+        show_usage
         exit 1
     fi
 }
@@ -101,11 +137,32 @@ get_pr_checks() {
     echo "$checks"
     echo
     
-    # Get failed check logs
+    # Check if any checks are in progress
+    local in_progress_checks
+    in_progress_checks=$(echo "$checks" | grep -E "(pending|in_progress|queued|requested)" || true)
+    
+    if [ -n "$in_progress_checks" ] && [ "$WATCH_MODE" = false ]; then
+        echo "⏳ Checks are in progress. Enabling watch mode..."
+        echo "   Use Ctrl+C to exit watch mode"
+        echo ""
+        WATCH_MODE=true
+    fi
+    
+    if [ "$WATCH_MODE" = true ]; then
+        echo "👀 Watching checks (interval: ${WATCH_INTERVAL}s)..."
+        echo "================================================"
+        gh pr checks "$pr_num" --repo "$owner/$repo" --watch --interval="$WATCH_INTERVAL"
+        echo ""
+        echo "Watch completed. Fetching final status and logs..."
+        echo ""
+        # Refresh checks after watching
+        checks=$(gh pr checks "$pr_num" --repo "$owner/$repo" 2>&1)
+    fi
+    
+    # Get failed check logs using workflow runs
     echo "Checking for failed checks..."
     local failed_checks
-    failed_checks=$(gh pr checks "$pr_num" --repo "$owner/$repo" --json name,status,conclusion | \
-        jq -r '.[] | select(.conclusion == "failure" or .conclusion == "cancelled") | .name')
+    failed_checks=$(echo "$checks" | awk '$2 == "fail" || $2 == "cancelled" {print $1}' | head -5)
     
     if [ -n "$failed_checks" ]; then
         echo "================================================"
@@ -142,9 +199,8 @@ get_pr_checks() {
 
 # Main execution
 main() {
-    validate_inputs "$@"
+    parse_arguments "$@"
     
-    PR_URL="$1"
     extract_pr_info "$PR_URL"
     check_gh_cli
     get_pr_checks "$OWNER" "$REPO" "$PR_NUM"
