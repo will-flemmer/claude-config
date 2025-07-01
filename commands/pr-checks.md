@@ -44,6 +44,13 @@ The command displays:
 2. All check runs with their current status
 3. For failed checks: detailed logs (truncated to 100 lines per check)
 
+## Post-Check Actions
+
+Once all checks are complete, the agent should:
+- **Fix failing checks**: Review the failure logs and make necessary code changes to resolve issues
+- **Commit and push fixes**: Use `commit-and-push.sh "fix: <description>"` to commit and push changes
+- **Monitor progress**: Continue watching until all checks pass
+
 ## Error Handling
 
 - Validates GitHub PR URL format
