@@ -58,12 +58,20 @@ When a check fails, the command automatically fetches and displays the logs. To 
 4. **Identify the root cause**: The logs typically show the exact command that failed and why
 5. **Cross-reference with local environment**: Ensure your local setup matches the CI environment
 
-## Post-Check Actions
+## Iterative Fix Workflow
 
-Once all checks are complete, the agent should:
-- **Fix failing checks**: Review the failure logs and make necessary code changes to resolve issues
-- **Commit and push fixes**: Use `commit-and-push.sh "fix: <description>"` to commit and push changes
-- **Monitor progress**: Continue watching until all checks pass
+The agent should follow this iterative process:
+
+1. **Run pr-checks with watch mode**: `pr-checks.sh <pr-url> --watch`
+2. **When checks fail**:
+   - Analyze the failure logs
+   - Fix the identified issues in the code
+   - Use `commit-and-push.sh "fix: <description>"` to commit and push
+3. **Continue watching**: The pushed changes will trigger new checks
+4. **Repeat until all checks pass**: Keep the watch mode running and fix any new failures
+5. **Success**: Only stop when all checks show as passed
+
+**Important**: After pushing fixes, do NOT exit. Keep watching the PR to ensure the fixes resolve all issues.
 
 ## Error Handling
 
