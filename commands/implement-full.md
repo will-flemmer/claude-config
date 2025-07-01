@@ -112,6 +112,8 @@ After creating the PR, you MUST:
 
 **IMPORTANT**: Always use the provided scripts. Never run raw git or gh commands.
 
+**VERY IMPORTANT**: The scripts can be found in the `~/.claude/commands` folder.
+
 PHASE 4: COMPLETION
 ==================
 After all checks pass, the workflow is complete.

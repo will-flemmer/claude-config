@@ -148,6 +148,13 @@ Before marking any task as complete:
 - **Git CLI (`git`)**: Used for version control operations including commits, branches, and repository management
 - **GitHub CLI (`gh`)**: Used for GitHub operations including creating pull requests, managing issues, and viewing repository information
 
+### Script Locations
+**VERY IMPORTANT**: All Claude-specific scripts are located in the `~/.claude/commands` folder. These include:
+- `commit-and-push.sh`: For creating and pushing commits with automatic validation
+- `pr-checks.sh`: For monitoring PR check status
+- `check-logs.sh`: For viewing detailed logs of failed checks
+- Other workflow automation scripts
+
 ### Pull Request Guidelines
 When creating pull requests:
 - **Title**: Use the commit message as the PR title

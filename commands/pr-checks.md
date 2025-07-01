@@ -4,6 +4,8 @@ Check the status of GitHub pull request checks and view logs for failed checks w
 
 **IMPORTANT**: Always use the provided `pr-checks.sh` script. Do NOT run custom `gh` commands directly.
 
+**VERY IMPORTANT**: The scripts can be found in the `~/.claude/commands` folder.
+
 ## Usage
 
 ```bash

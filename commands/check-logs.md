@@ -4,6 +4,8 @@ Get full logs for failed checks in a GitHub pull request.
 
 **IMPORTANT**: Always use the provided `check-logs.sh` script. Do NOT run custom `gh` commands directly.
 
+**VERY IMPORTANT**: The scripts can be found in the `~/.claude/commands` folder.
+
 ## Usage
 
 ```bash
