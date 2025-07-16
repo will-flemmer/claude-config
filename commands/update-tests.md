@@ -1,13 +1,13 @@
-# add-tests
+# update-tests
 
-Generate unit tests for changed files based on git diff output, following TDD principles.
+Update unit tests for changed files based on git diff output, following TDD principles. This command both adds new tests and removes redundant tests.
 
-**IMPORTANT**: Always use the provided scripts from the `commands/add-tests` folder. Do NOT run custom test generation commands directly.
+**IMPORTANT**: Always use the provided scripts from the `commands/update-tests` folder. Do NOT run custom test generation commands directly.
 
 ## Usage
 
 ```bash
-./commands/add-tests/add-tests.sh
+./commands/update-tests/update-tests.sh
 ```
 
 ## Features
@@ -18,26 +18,30 @@ Generate unit tests for changed files based on git diff output, following TDD pr
 - **Automatic Discovery**: Analyzes git diff to identify changed files needing tests
 - **Mock Reuse**: Uses existing mocking patterns from the codebase
 - **Code Quality**: Runs lint commands to ensure standards are met
+- **Test Cleanup**: Removes redundant tests that are no longer needed
 
 ## Workflow
 
-For each test added, the script will:
-1. Add the test based on changed functionality
-2. Verify the test passes with current code
-3. Temporarily remove the functionality to verify test fails
-4. Restore the functionality and confirm test passes again
-5. Run lint commands to ensure code quality standards are met
+The script will:
+1. **Analyze changes**: Review git diff to identify modified functionality
+2. **Add new tests**: Create tests for new or modified functionality
+3. **Remove redundant tests**: Delete tests that are no longer needed
+4. **Verify tests**: For each new test:
+   - Verify the test passes with current code
+   - Temporarily remove the functionality to verify test fails
+   - Restore the functionality and confirm test passes again
+5. **Run lint commands**: Ensure code quality standards are met
 
 ## Examples
 
 ```bash
-# Run after making changes to generate tests
-./commands/add-tests/add-tests.sh
+# Run after making changes to update tests
+./commands/update-tests/update-tests.sh
 
 # The script will:
 # - Analyze git diff for changed files
 # - Identify testable functions/methods
-# - Generate appropriate unit tests
+# - Add new tests and remove redundant ones
 # - Follow existing test patterns in the codebase
 ```
 
