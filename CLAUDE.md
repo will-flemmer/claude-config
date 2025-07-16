@@ -127,8 +127,6 @@ Before marking any task as complete:
 - **jq (`jq`)**: Used for parsing JSON
 
 ### Script Locations
-**VERY IMPORTANT**: All Claude-specific scripts are located in the `~/.claude/commands` folder. These include:
-- `commit-and-push.sh`: For creating and pushing commits with automatic validation
-- `pr-checks.sh`: For monitoring PR check status
-- `check-logs.sh`: For viewing detailed logs of failed checks
-- Other workflow automation scripts
+**VERY IMPORTANT**: All Claude-specific scripts are located in the `~/.claude/commands/<name-of-command>` folder. where <name-of-command> matches the commands file name.
+E.g for the `pr-checks` command which is defined in `~/.claude/commands/pr-checks.md`, the scripts are located in the `~/.claude/commands/pr-checks` directory.
+This pattern is follow for all custom commands. 

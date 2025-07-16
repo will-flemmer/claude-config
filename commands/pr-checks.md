@@ -2,9 +2,9 @@
 
 Check the status of GitHub pull request checks and view logs for failed checks with automatic watch functionality.
 
-**IMPORTANT**: Always use the provided `pr-checks.sh` script. Do NOT run custom `gh` commands directly.
+**IMPORTANT**: Always use the provided scripts from `~/.claude/commands/pr-checks` folder. Do NOT run custom `gh` commands directly.
 
-**VERY IMPORTANT**: The scripts can be found in the `~/.claude/commands` folder.
+**VERY IMPORTANT**: The scripts can be found in the `~/.claude/commands/pr-checks` folder.
 
 ## Usage
 
@@ -44,7 +44,7 @@ The command displays:
 When a check fails, the command automatically fetches and displays the logs. To effectively debug failures:
 
 1. **Review the error output**: Failed checks show the last 100 lines of logs
-2. **Get full logs**: Use `check-logs.sh <pr-url>` to see complete logs without truncation
+2. **Get full logs**: Use `pr-checks/check-logs.sh <pr-url>` to see complete logs without truncation
 3. **Look for specific error messages**: Common patterns include:
    - Test failures with stack traces
    - Linting errors with file:line references
@@ -57,9 +57,9 @@ When a check fails, the command automatically fetches and displays the logs. To 
 
 The agent should follow this iterative process:
 
-1. **Run pr-checks**: `./commands/pr-checks.sh <pr-url>`
+1. **Run pr-checks**: `./commands/pr-checks/pr-checks.sh <pr-url>`
 2. **When checks fail**:
-   - Analyze the failure logs (use `./commands/check-logs.sh <pr-url>` for full logs)
+   - Analyze the failure logs (use `./commands/pr-checks/check-logs.sh <pr-url>` for full logs)
    - Fix the identified issues in the code
    - Use `./commands/commit-and-push.sh "fix: <description>"` to commit and push
 3. **Continue watching**: The pushed changes will trigger new checks

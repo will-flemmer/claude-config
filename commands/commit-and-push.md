@@ -2,9 +2,9 @@
 
 Create and push commits with automatic message length validation.
 
-**IMPORTANT**: Always use the provided `commit-and-push.sh` script. Do NOT run custom `git` commands directly.
+**IMPORTANT**: Always use the provided scripts from`~/.claude/commands/commit-and-push` folder. Do NOT run custom `git` commands directly.
 
-**VERY IMPORTANT**: The scripts can be found in the `~/.claude/commands` folder.
+**VERY IMPORTANT**: The scripts can be found in the `~/.claude/commands/commit-and-push` folder.
 
 ## Usage
 

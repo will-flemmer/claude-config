@@ -1,6 +1,6 @@
 # implement-full
 
-Comprehensive workflow command that implements a coding task using the Explore, Plan, Code methodology with TDD principles, automated PR creation, checks, and review iteration.
+Comprehensive workflow command that implements a coding task using the Explore, Plan, Code methodology with TDD principles, and PR checks.
 
 ## CRITICAL: Complete ALL Steps
 
@@ -68,30 +68,9 @@ After completing implementation, you MUST:
 4. If you need to push a new branch:
    git push -u origin [branch-name]
 
-6. Create the pull request:
-   gh pr create --title "feat: [task description]" --body "## Summary
-   [2-3 bullet points describing what was implemented]
-   
-   ## Implementation Details
-   - Followed TDD methodology
-   - 100% test coverage
-   - All quality standards met
-   
-   ## Testing
-   - [ ] All unit tests pass
-   - [ ] Manual smoke testing completed
-   - [ ] Code quality checks pass
-   
-   ## Checklist
-   - [ ] Tests written first (TDD)
-   - [ ] 100% test coverage
-   - [ ] Functions < 20 lines
-   - [ ] Cyclomatic complexity < 5
-   - [ ] At least 1 assertion per function if over 5 lines
-   - [ ] Error handling implemented
-   - [ ] No code duplication
-   
-   🤖 Generated with Claude Code"
+6. Create the pull request: `gh pr create`
+   - use the commit message as PR title
+   - use PR template as body
 
 7. Save the PR URL for the next phase
 
@@ -100,19 +79,19 @@ PHASE 3: PR CHECKS (MANDATORY - DO NOT SKIP)
 After creating the PR, you MUST:
 
 1. Use the pr-checks script to monitor:
-   ./commands/pr-checks.sh [PR-URL] --watch
+   ./commands/pr-checks/pr-checks.sh [PR-URL]
 
 2. If any checks fail:
-   - Use ./commands/check-logs.sh [PR-URL] for detailed logs
+   - Use ./commands/pr-checks/check-logs.sh [PR-URL] for detailed logs
    - Fix the issues
-   - Use ./commands/commit-and-push.sh "fix: [description]" to push fixes
-   - Continue watching with pr-checks.sh
+   - Use ./commands/commit-and-push/commit-and-push.sh "fix: [description]" to push fixes
+   - Continue watching with ./commands/pr-checks/pr-checks.sh [PR-URL]
 
 3. Continue until ALL checks pass
 
 **IMPORTANT**: Always use the provided scripts. Never run raw git or gh commands.
 
-**VERY IMPORTANT**: The scripts can be found in the `~/.claude/commands` folder.
+**VERY IMPORTANT**: The scripts can be found in the `~/.claude/commands` folder. Read the `.md` files in this directory to find the correct script to use.
 
 PHASE 4: COMPLETION
 ==================
@@ -139,7 +118,6 @@ This phase involves understanding the codebase and implementing the solution usi
 - Create a TDD implementation plan
 - Write tests first, then implementation
 - Ensure all quality standards are met
-- Perform comprehensive smoke testing
 
 **Common Mistake**: Agents often stop here. YOU MUST CONTINUE TO PHASE 2.
 
@@ -149,7 +127,7 @@ This phase involves creating a feature branch, committing changes, and opening a
 
 **Key Activities:**
 - Create semantic branch name
-- Make comprehensive commit with smoke test results
+- Commit changes
 - Push to remote repository
 - Create PR with detailed description
 - Save PR URL for later phases
@@ -183,36 +161,6 @@ This phase marks the end of the workflow after all checks pass.
 - **Git**: Must be in a git repository
 - **GitHub CLI (`gh`)**: Must be installed and authenticated
 - **Repository Access**: Must have permissions to create branches and PRs
-
-## Troubleshooting
-
-### Agent Only Completes Phase 1
-
-**Problem**: The agent implements the code but doesn't create a PR.
-
-**Solution**: 
-1. Explicitly remind the agent about ALL 4 phases
-2. Copy the complete workflow prompt above
-3. Emphasize "DO NOT STOP until the PR is created and checks pass"
-
-### PR Creation Fails
-
-**Problem**: Git or GitHub CLI errors during PR creation.
-
-**Solutions**:
-- Verify `gh auth status` shows you're logged in
-- Ensure you have push permissions to the repository
-- Check that you're not already on a feature branch
-
-### Checks Never Complete
-
-**Problem**: PR checks hang or timeout.
-
-**Solutions**:
-- Use `gh pr checks` without `--watch` to see current status
-- Check GitHub Actions tab in the repository
-- Look for configuration issues in CI/CD
-
 
 ## Best Practices
 
