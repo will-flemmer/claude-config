@@ -14,3 +14,4 @@ echo "Changed files:"
 git diff --name-only --diff-filter=AMU && git diff --cached --name-only --diff-filter=AMU | sort -u
 
 echo "Claude will implement test updates (add new, remove redundant) for these changes."
+echo "Use commands from Justfile to run tests and code quality checks."

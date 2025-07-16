@@ -2,7 +2,7 @@
 
 Update unit tests for changed files based on git diff output, following TDD principles. This command both adds new tests and removes redundant tests.
 
-**IMPORTANT**: Always use the provided scripts from the `commands/update-tests` folder. Do NOT run custom test generation commands directly.
+**IMPORTANT**: Always use the provided scripts from the `commands/update-tests` folder. Do NOT run custom test generation commands directly. Always use `just` commands for testing and linting.
 
 ## Usage
 
