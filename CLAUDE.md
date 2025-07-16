@@ -22,12 +22,14 @@ When working in a project, ALWAYS check for a `Justfile` which contains useful c
 
 ## Code Quality Standards
 
-### 1. Simplicity and Clarity
+### 1. Simplicity and Clarity (MOST IMPORTANT)
+- **ALWAYS choose the simplest solution that works**
 - Write the simplest code that could possibly work
 - Each function should do exactly one thing
 - Maximum function length: 20 lines
 - Maximum cyclomatic complexity: 5
 - No nested loops beyond 2 levels
+- **Prefer simple, obvious code over clever code**
 
 ### 2. DRY (Don't Repeat Yourself)
 - Extract common code into well-named functions
@@ -107,8 +109,9 @@ After each TDD cycle, verify:
 - **Correctness > Performance**
 - **Correctness > Cleverness**
 - **Correctness > Brevity** (but keep it simple)
+- **Simplicity > Complexity**
 
-When in doubt, choose the solution that is easiest to verify as correct.
+When in doubt, choose the solution that is easiest to verify as correct AND simplest to understand.
 
 ## Task Completion Requirements
 
