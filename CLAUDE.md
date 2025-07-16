@@ -1,5 +1,5 @@
 # Code Development Guidelines
-These guidelines apply ALL code written
+These guidelines apply to ALL code written
 
 ## Project Commands (IMPORTANT)
 When working in a project, ALWAYS check for a `Justfile` which contains useful commands that can be run via `just <command>`. These files typically contain project-specific commands for building, testing, linting, and other common development tasks. ALWAYS Use Just commands for:
