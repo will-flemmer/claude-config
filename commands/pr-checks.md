@@ -9,20 +9,13 @@ Check the status of GitHub pull request checks and view logs for failed checks w
 ## Usage
 
 ```bash
-pr-checks.sh <github-pr-url> [--watch] [--interval=seconds]
+pr-checks.sh <github-pr-url>
 ```
 
 ## Examples
 
 ```bash
-# Basic check
 pr-checks.sh https://github.com/anthropics/claude-code/pull/123
-
-# Manual watch mode
-pr-checks.sh https://github.com/anthropics/claude-code/pull/123 --watch
-
-# Custom watch interval
-pr-checks.sh https://github.com/anthropics/claude-code/pull/123 --watch --interval=30
 ```
 
 ## Features
@@ -30,8 +23,6 @@ pr-checks.sh https://github.com/anthropics/claude-code/pull/123 --watch --interv
 - Shows PR title, branch, and state
 - Lists all check runs with their status
 - **Auto-watch mode**: Automatically detects when checks are in progress and enables watch mode
-- **Manual watch mode**: Use `--watch` flag to monitor checks until completion
-- **Customizable interval**: Set watch interval with `--interval=N` (default: 10 seconds)
 - Automatically fetches logs for failed checks
 - Provides detailed error messages for debugging
 
@@ -66,13 +57,13 @@ When a check fails, the command automatically fetches and displays the logs. To 
 
 The agent should follow this iterative process:
 
-1. **Run pr-checks with watch mode**: `./commands/pr-checks.sh <pr-url> --watch`
+1. **Run pr-checks**: `./commands/pr-checks.sh <pr-url>`
 2. **When checks fail**:
    - Analyze the failure logs (use `./commands/check-logs.sh <pr-url>` for full logs)
    - Fix the identified issues in the code
    - Use `./commands/commit-and-push.sh "fix: <description>"` to commit and push
 3. **Continue watching**: The pushed changes will trigger new checks
-4. **Repeat until all checks pass**: Keep the watch mode running and fix any new failures
+4. **Repeat until all checks pass**: Keep watching and fix any new failures
 5. **Success**: Only stop when all checks show as passed
 
 **Important**: 
