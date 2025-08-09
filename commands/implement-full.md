@@ -32,12 +32,19 @@ YOU MUST COMPLETE ALL 4 PHASES. DO NOT STOP UNTIL THE PR IS CREATED AND CHECKS P
 
 PHASE 1: IMPLEMENTATION
 ======================
+0. ASK QUESTIONS & CLARIFY: BEFORE starting implementation, you MUST:
+   - Ask any clarifying questions about requirements
+   - Confirm understanding of the task scope
+   - Identify any ambiguities or missing information
+   - Get approval for your approach before proceeding
+
 1. EXPLORE: Understand the existing codebase and requirements
    - Search for related files and patterns
    - Read existing code to understand conventions
    - Identify where new code should be placed
 
 2. PLAN: Create a detailed implementation plan using TDD principles
+   - Present your plan to the user for approval
    - List all test cases to write
    - Define the API/interface
    - Break down into RED-GREEN-REFACTOR cycles
@@ -109,13 +116,14 @@ DO NOT STOP until ALL criteria are met.
 
 ## Detailed Phase Descriptions
 
-### Phase 1: Implementation (Explore, Plan, Code)
+### Phase 1: Implementation (Ask, Explore, Plan, Code)
 
-This phase involves understanding the codebase and implementing the solution using TDD.
+This phase involves clarifying requirements, understanding the codebase, and implementing the solution using TDD.
 
 **Key Activities:**
+- Ask clarifying questions and get approval before starting
 - Search and read existing code
-- Create a TDD implementation plan
+- Create a TDD implementation plan and get user approval
 - Write tests first, then implementation
 - Ensure all quality standards are met
 
