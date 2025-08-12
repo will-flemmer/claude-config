@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "just-mcp": {
+      "command": "/path/to/just-mcp",
+      "args": [
+        "--stdio"
+      ]
+    },
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ]
+    }
+  }
+}
