@@ -55,7 +55,9 @@ When a check fails, the command automatically fetches and displays the logs. To 
 
 ## Iterative Fix Workflow
 
-The agent should follow this iterative process:
+**IMPORTANT**: When using this command, delegate the monitoring and fixing to the pr-checker agent by using the Task tool with `subagent_type: "pr-checker"`. The pr-checker agent specializes in automated CI/CD monitoring, check failure analysis, and iterative fixing.
+
+For manual execution, the agent should follow this iterative process:
 
 1. **Run pr-checks**: `./commands/pr-checks/pr-checks.sh <pr-url>`
 2. **WAIT FOR CHECKS TO COMPLETE**: 
