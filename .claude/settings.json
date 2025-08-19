@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod:*)",
+      "Bash(mkdir:*)",
+      "Bash(./update_root_config.sh)",
+      "Bash(ls:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(./test_pr_checks.sh:*)",
+      "Bash(./pr-checks.sh:*)",
+      "Bash(./commands/test_implement_full.sh:*)",
+      "Bash(./commands/implement-full.sh:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(rm:*)",
+      "Bash(gh pr list:*)",
+      "Bash(find:*)",
+      "Bash(gh pr comment:*)",
+      "Bash(gh pr review:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(/Users/williamflemmer/Documents/claude-config/commands/pr-checks.sh:*)",
+      "Bash(grep:*)",
+      "Bash(/Users/williamflemmer/Documents/claude-config/test_pr_check_fix.sh)",
+      "Bash(/Users/williamflemmer/Documents/claude-config/test_auto_wait_fix.sh:*)",
+      "Bash(/Users/williamflemmer/Documents/claude-config/commands/test_pr_checks.sh)",
+      "Bash(./commands/pr-checks.sh:*)",
+      "Bash(./commands/commit-and-push.sh:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(~/.claude/commands/pr-checks/pr-checks.sh:*)",
+      "Bash(~/.claude/commands/pr-checks/check-logs.sh https://github.com/Flemmer-Digital/auction-api/pull/307 Tests)"
+    ],
+    "deny": []
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "just-mcp"
+  ]
+}

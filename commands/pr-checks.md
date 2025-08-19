@@ -1,6 +1,6 @@
 # pr-checks
 
-Check the status of GitHub pull request checks and view logs for failed checks with automatic watch functionality.
+Check the status of GitHub pull request checks with intelligent failure analysis and automated agent routing for fixes.
 
 **IMPORTANT**: Always use the provided scripts from `~/.claude/commands/pr-checks` folder. Do NOT run custom `gh` commands directly.
 
@@ -8,6 +8,12 @@ Check the status of GitHub pull request checks and view logs for failed checks w
 
 ## Usage
 
+### Enhanced Mode (Recommended)
+```bash
+pr-checks-enhanced.sh <github-pr-url>
+```
+
+### Basic Mode  
 ```bash
 pr-checks.sh <github-pr-url>
 ```
@@ -15,11 +21,20 @@ pr-checks.sh <github-pr-url>
 ## Examples
 
 ```bash
+pr-checks-enhanced.sh https://github.com/anthropics/claude-code/pull/123
 pr-checks.sh https://github.com/anthropics/claude-code/pull/123
 ```
 
-## Features
+## Enhanced Features
 
+### Intelligent Failure Analysis
+- **Comprehensive Context Gathering**: Collects PR info, repository context, failed check details
+- **Root Cause Identification**: Analyzes error patterns and categorizes failure types
+- **Agent Routing**: Automatically routes fixes to appropriate specialized developer agents
+- **Dependency Detection**: Identifies frameworks, languages, and build tools
+- **Priority-Based Fix Planning**: Orders fixes based on dependencies and complexity
+
+### Traditional Features
 - Shows PR title, branch, and state
 - Lists all check runs with their status
 - **Auto-watch mode**: Automatically detects when checks are in progress and enables watch mode
@@ -53,11 +68,44 @@ When a check fails, the command automatically fetches and displays the logs. To 
 4. **Identify the root cause**: The logs typically show the exact command that failed and why
 5. **Cross-reference with local environment**: Ensure your local setup matches the CI environment
 
-## Iterative Fix Workflow
+## Intelligent Fix Workflow (Enhanced Mode)
 
-**IMPORTANT**: When using this command, delegate the monitoring and fixing to the pr-checker agent by using the Task tool with `subagent_type: "pr-checker"`. The pr-checker agent specializes in automated CI/CD monitoring, check failure analysis, and iterative fixing.
+### Automated Agent Routing
+When using the enhanced `pr-checks-enhanced.sh`, the system automatically:
 
-For manual execution, the agent should follow this iterative process:
+1. **Gathers Comprehensive Context**: 
+   - PR information (title, files changed, commits)
+   - Repository context (languages, frameworks, build tools)
+   - Failed check details with full logs
+
+2. **Analyzes Failures Intelligently**:
+   - Uses the prompt-engineer-optimized analysis prompt
+   - Categorizes failures (build, test, lint, security, etc.)
+   - Identifies root causes and dependencies between fixes
+
+3. **Routes to Task-Decomposition-Expert**:
+   - Creates structured task breakdown for each failure
+   - Assigns appropriate specialized developer agents
+   - Provides priority-based fix ordering
+
+4. **Executes Automated Fixes**:
+   - Each assigned agent implements their specific fixes
+   - Changes are automatically committed and pushed
+   - Process continues until all checks pass
+
+### Usage with PR-Checker Agent
+```bash
+# Use the pr-checker agent for automated monitoring and fixing
+Task(
+  subagent_type: "pr-checker",
+  description: "Fix PR check failures",
+  prompt: "Monitor and fix all failing checks for PR: <github-pr-url> using the enhanced pr-checks workflow"
+)
+```
+
+## Traditional Iterative Fix Workflow (Basic Mode)
+
+For manual execution with the basic `pr-checks.sh`, follow this process:
 
 1. **Run pr-checks**: `./commands/pr-checks/pr-checks.sh <pr-url>`
 2. **WAIT FOR CHECKS TO COMPLETE**: 

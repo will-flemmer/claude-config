@@ -1,0 +1,155 @@
+{
+  "version": "1.0.0",
+  "agent_settings": {
+    "task_decomposition_expert": {
+      "timeout": 30,
+      "retry_attempts": 2,
+      "required": true
+    },
+    "prompt_engineer": {
+      "timeout": 30,
+      "retry_attempts": 2,
+      "required": true
+    },
+    "issue_writer": {
+      "timeout": 45,
+      "retry_attempts": 3,
+      "required": true
+    }
+  },
+  "template_settings": {
+    "auto_detection": true,
+    "confidence_threshold": 0.7,
+    "default_template": "task",
+    "fallback_template": "story"
+  },
+  "github_settings": {
+    "max_title_length": 80,
+    "default_labels": {
+      "task": ["task", "enhancement"],
+      "story": ["feature", "user-story"],
+      "project": ["epic", "project", "initiative"]
+    },
+    "label_suggestions": true,
+    "auto_assign": false
+  },
+  "output_settings": {
+    "default_format": "text",
+    "progress_indicators": true,
+    "color_support": true,
+    "verbose_errors": true
+  },
+  "templates": {
+    "task": {
+      "name": "Task Template",
+      "description": "Single actionable item with clear scope",
+      "structure": {
+        "title_format": "Action verb + specific object (< 80 chars)",
+        "sections": [
+          "## Objective",
+          "## Acceptance Criteria", 
+          "## Implementation Notes",
+          "## Definition of Done"
+        ],
+        "required_sections": ["Objective", "Acceptance Criteria"],
+        "suggested_labels": ["task", "enhancement", "good first issue"],
+        "complexity": "low",
+        "estimated_time": "1-3 days"
+      },
+      "content_template": "## Objective\n\n{objective}\n\n## Acceptance Criteria\n\n{acceptance_criteria}\n\n## Implementation Notes\n\n{implementation_notes}\n\n## Definition of Done\n\n- [ ] Implementation meets functional requirements\n- [ ] Code follows project standards and style guides\n- [ ] Unit tests are written and passing\n- [ ] Documentation is updated if needed\n- [ ] Code review is completed and approved"
+    },
+    "story": {
+      "name": "User Story Template", 
+      "description": "Complex feature with multiple components",
+      "structure": {
+        "title_format": "User-focused feature description",
+        "sections": [
+          "## User Story",
+          "## Background/Context",
+          "## Acceptance Criteria", 
+          "## Technical Requirements",
+          "## Test Scenarios",
+          "## Definition of Done"
+        ],
+        "required_sections": ["User Story", "Acceptance Criteria"],
+        "suggested_labels": ["feature", "user-story", "enhancement"],
+        "complexity": "medium",
+        "estimated_time": "1-2 weeks"
+      },
+      "content_template": "## User Story\n\nAs a {user_type}, I want {functionality} so that {benefit}.\n\n## Background/Context\n\n{background}\n\n## Acceptance Criteria\n\n{acceptance_criteria}\n\n## Technical Requirements\n\n{technical_requirements}\n\n## Test Scenarios\n\n{test_scenarios}\n\n## Definition of Done\n\n- [ ] Feature works as specified in acceptance criteria\n- [ ] All test scenarios pass\n- [ ] Code is properly tested (unit, integration)\n- [ ] Documentation is updated\n- [ ] Feature is accessible and follows UI/UX guidelines\n- [ ] Performance requirements are met\n- [ ] Security considerations are addressed"
+    },
+    "project": {
+      "name": "Project Template",
+      "description": "Large initiative with multiple milestones",
+      "structure": {
+        "title_format": "High-level initiative or system name",
+        "sections": [
+          "## Project Overview",
+          "## Objectives & Success Metrics",
+          "## Scope & Deliverables",
+          "## Technical Architecture", 
+          "## Milestone Breakdown",
+          "## Dependencies & Constraints",
+          "## Risk Assessment",
+          "## Definition of Done"
+        ],
+        "required_sections": ["Project Overview", "Objectives & Success Metrics", "Milestone Breakdown"],
+        "suggested_labels": ["epic", "project", "initiative", "architecture"],
+        "complexity": "high", 
+        "estimated_time": "1-6 months"
+      },
+      "content_template": "## Project Overview\n\n{overview}\n\n## Objectives & Success Metrics\n\n### Objectives\n{objectives}\n\n### Success Metrics\n{success_metrics}\n\n## Scope & Deliverables\n\n### In Scope\n{in_scope}\n\n### Out of Scope\n{out_of_scope}\n\n## Technical Architecture\n\n{architecture}\n\n## Milestone Breakdown\n\n{milestones}\n\n## Dependencies & Constraints\n\n### Dependencies\n{dependencies}\n\n### Constraints\n{constraints}\n\n## Risk Assessment\n\n{risks}\n\n## Definition of Done\n\n- [ ] All milestones are completed\n- [ ] Success metrics are achieved\n- [ ] Documentation is comprehensive\n- [ ] System is fully tested and deployed\n- [ ] Team is trained on new system\n- [ ] Monitoring and alerting are in place\n- [ ] Performance benchmarks are met\n- [ ] Security audit is completed"
+    }
+  },
+  "interactive_settings": {
+    "max_questions": 5,
+    "question_timeout": 300,
+    "auto_enhance": true,
+    "show_preview": true,
+    "require_confirmation": true
+  },
+  "validation_rules": {
+    "title": {
+      "min_length": 10,
+      "max_length": 80,
+      "required_patterns": ["^(Add|Create|Implement|Fix|Update|Remove|Delete|Modify|Change|Improve|Build|Design|Refactor|Configure|Setup|Install|Deploy)"],
+      "forbidden_patterns": ["TODO", "FIXME", "XXX"]
+    },
+    "description": {
+      "min_length": 20,
+      "required_sections": {
+        "task": ["Objective", "Acceptance Criteria"],
+        "story": ["User Story", "Acceptance Criteria"], 
+        "project": ["Project Overview", "Objectives", "Milestone"]
+      },
+      "forbidden_words": ["asap", "urgent", "immediately", "simple", "just", "easy"]
+    },
+    "labels": {
+      "max_labels": 10,
+      "required_prefix": [],
+      "suggested_patterns": {
+        "bug": ["bug", "fix", "error", "issue"],
+        "feature": ["feature", "enhancement", "new"],
+        "documentation": ["docs", "documentation", "readme"],
+        "maintenance": ["maintenance", "refactor", "cleanup", "chore"]
+      }
+    }
+  },
+  "performance_settings": {
+    "max_processing_time": 60,
+    "agent_timeout": 30,
+    "retry_delays": [1, 2, 4],
+    "cache_duration": 300,
+    "concurrent_agents": 1
+  },
+  "feature_flags": {
+    "enable_ai_enhancement": true,
+    "enable_template_detection": true,  
+    "enable_label_suggestions": true,
+    "enable_assignee_validation": true,
+    "enable_milestone_validation": true,
+    "enable_progress_tracking": true,
+    "enable_metrics_collection": true,
+    "enable_caching": false
+  }
+}
