@@ -113,13 +113,41 @@ After each TDD cycle, verify:
 
 When in doubt, choose the solution that is easiest to verify as correct AND simplest to understand.
 
+## Agent-First Task Execution
+
+**MANDATORY**: For ALL tasks requiring implementation, analysis, or specialized work, ALWAYS use the appropriate specialized agent via the Task tool. Never attempt to complete complex tasks directly.
+
+### Agent Selection Guidelines
+- **Code implementation**: Use language-specific agents (frontend-developer, backend-developer, etc.)
+- **Testing**: Always use test-automator agent
+- **Code review/quality**: Use code-reviewer or pr-reviewer agents  
+- **PR management**: Use pr-checker agent for monitoring and fixing CI/CD issues
+- **Issue creation**: Use issue-writer agent for structured GitHub issues
+- **Complex planning**: Use task-decomposition-expert agent
+- **Command creation**: Use command-writer agent for CLI tools
+- **Workflow design**: Use workflow-orchestrator agent
+
+### Task Routing Process
+1. **Identify Task Type**: Determine which specialized agent is most appropriate
+2. **Use Task Tool**: Always use `Task(subagent_type: "agent-name", description: "brief", prompt: "detailed task")`
+3. **Provide Context**: Give agents comprehensive context and clear success criteria
+4. **Monitor Progress**: Let agents complete their specialized work
+
+### Direct Task Exceptions
+Only handle tasks directly for:
+- Simple file reading/searching operations
+- Basic git status checks
+- Immediate clarification questions
+- Agent coordination and routing decisions
+
 ## Task Completion Requirements
 
 Before marking any task as complete:
-1. **Objective Review**: Review all changes made for correctness and adherence to TDD principles
-2. **Tests Pass**: Run the appropriate tests (use Justfile command) and ensure they ALL pass, else iteratively fix them.
-3. **Code Quality Verification**: Ensure ALL code quality standards are met, by running linting commands (use Justfile commands)
-4. **Only then** report the task as complete to the user
+1. **Agent Execution**: Ensure appropriate specialized agent completed the work
+2. **Objective Review**: Review all changes made for correctness and adherence to TDD principles
+3. **Tests Pass**: Run the appropriate tests (use Justfile command) and ensure they ALL pass, else iteratively fix them.
+4. **Code Quality Verification**: Ensure ALL code quality standards are met, by running linting commands (use Justfile commands)
+5. **Only then** report the task as complete to the user
 
 ## Tools
 
