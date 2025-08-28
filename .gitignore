@@ -13,3 +13,7 @@ Thumbs.db
 *.backup
 *.bak
 *.tmp
+
+# Agent context files
+tasks/session_context_*.md
+!tasks/session_context_example.md
