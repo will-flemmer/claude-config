@@ -37,19 +37,17 @@ create-gh-issue [OPTIONS] --interactive
 2. Create context file: `tasks/session_context_<session_id>.md`
 3. Pass context file path to ALL agents in their prompts
 
-The command enforces three sequential agent phases with shared context:
+The command enforces two sequential agent phases with shared context:
 
-1. **PHASE 1 - Task-Decomposition-Expert**: Analyzes complexity and determines optimal template (updates context)
-2. **PHASE 2 - Prompt-Engineer**: Optimizes descriptions for clarity and completeness (reads/updates context)
-3. **PHASE 3 - Issue-Writer**: Creates the final GitHub issue with proper structure (reads/updates context)
+1. **PHASE 1 - Task-Decomposition-Expert**: Analyzes complexity, determines optimal template, and structures requirements (updates context)
+2. **PHASE 2 - Issue-Writer**: Creates the final GitHub issue with proper structure (reads/updates context)
 
 ### Agent Coordination Flow with Context
 ```
 Create Context File →
   User Input → 
-  PHASE 1: Task-Decomposition-Expert (complexity analysis, template selection) → Update Context →
-  PHASE 2: Prompt-Engineer (description optimization, enhancement) → Update Context →
-  PHASE 3: Issue-Writer (GitHub issue creation with structure) → Update Context →
+  PHASE 1: Task-Decomposition-Expert (complexity analysis, requirements structuring) → Update Context →
+  PHASE 2: Issue-Writer (GitHub issue creation with structure) → Update Context →
   Issue URL Response
 ```
 
@@ -140,17 +138,12 @@ context_file="tasks/session_context_${session_id}.md"
 # PHASE 1: Task analysis and decomposition
 Task(subagent_type="task-decomposition-expert", 
      description="Analyze issue complexity",
-     prompt="Context file: ${context_file}. Analyze the following task for GitHub issue creation: 'Add user profile editing functionality'. Determine optimal template type (task/story/project), identify missing requirements, and provide structured analysis. Update context file with findings.")
+     prompt="Context file: ${context_file}. Analyze the following task for GitHub issue creation: 'Add user profile editing functionality'. Determine optimal template type (task/story/project), identify missing requirements, structure requirements clearly, and provide comprehensive analysis ready for issue creation. Update context file with findings.")
 
-# PHASE 2: Description optimization (reads context from Phase 1)
-Task(subagent_type="prompt-engineer", 
-     description="Optimize issue description",
-     prompt="Context file: ${context_file}. Read previous analysis and optimize the description 'Add user profile editing functionality' for maximum clarity. Create structured content ready for GitHub issue creation with proper acceptance criteria and technical details. Update context file with optimized content.")
-
-# PHASE 3: GitHub issue creation (reads context from Phase 2)
+# PHASE 2: GitHub issue creation (reads context from Phase 1)
 Task(subagent_type="issue-writer", 
      description="Create GitHub issue",
-     prompt="Context file: ${context_file}. Read optimized content from previous phases and create a comprehensive GitHub issue. Use appropriate template, add relevant labels, and ensure professional structure. Update context file with created issue number and URL.")
+     prompt="Context file: ${context_file}. Read structured requirements from task analysis and create a comprehensive GitHub issue. Use appropriate template and ensure professional structure ready for development. Update context file with created issue number and URL.")
 
 # Expected: Each phase reads shared context and builds on previous findings
 ```
@@ -166,17 +159,12 @@ context_file="tasks/session_context_${session_id}.md"
 # PHASE 1: Project complexity analysis
 Task(subagent_type="task-decomposition-expert", 
      description="Analyze project complexity",
-     prompt="Context file: ${context_file}. Analyze complex project: 'Build complete CI/CD pipeline with Docker integration'. Break down into milestones, identify dependencies, determine project template requirements, and provide comprehensive analysis. Update context file with complete breakdown.")
+     prompt="Context file: ${context_file}. Analyze complex project: 'Build complete CI/CD pipeline with Docker integration'. Break down into milestones, identify dependencies, determine project template requirements, structure comprehensive requirements, and provide detailed analysis ready for issue creation. Update context file with complete breakdown.")
 
-# PHASE 2: Project description optimization
-Task(subagent_type="prompt-engineer", 
-     description="Optimize project description",
-     prompt="Context file: ${context_file}. Read project analysis from context and create optimized project description for CI/CD pipeline with Docker. Include technical specifications, milestone breakdown, success criteria, and comprehensive implementation guidance. Update context with optimized structure.")
-
-# PHASE 3: Project issue creation
+# PHASE 2: Project issue creation
 Task(subagent_type="issue-writer", 
      description="Create project issue",
-     prompt="Context file: ${context_file}. Read complete project structure from context and create comprehensive GitHub project issue. Apply project template, add appropriate labels (enhancement, infrastructure, ci/cd, docker), structure milestones, and ensure enterprise-ready documentation. Update context with issue URL.")
+     prompt="Context file: ${context_file}. Read complete project structure from context and create comprehensive GitHub project issue. Apply project template, structure milestones clearly, and ensure enterprise-ready documentation. Update context with issue URL.")
 
 # Expected: Comprehensive project issue with shared context across all agents
 ```
@@ -235,17 +223,16 @@ Task(subagent_type="issue-writer",
 
 ## Interactive Mode Flow
 
-**MANDATORY AGENT WORKFLOW**: When using `--interactive` flag, must route through all three agents:
+**MANDATORY AGENT WORKFLOW**: When using `--interactive` flag, must route through both agents:
 
-1. **PHASE 1 - Task-Decomposition-Expert**: Analyzes user input and identifies gaps
+1. **PHASE 1 - Task-Decomposition-Expert**: Analyzes user input, identifies gaps, and structures requirements
 2. **Gap Collection**: Gathers missing information from user via clarifying questions  
-3. **PHASE 2 - Prompt-Engineer**: Optimizes description based on complete information
-4. **Preview Generation**: Shows structured issue preview for user review
-5. **User Confirmation**: User confirms before proceeding to creation
-6. **PHASE 3 - Issue-Writer**: Creates final GitHub issue in current repository with approved content
-7. **Result**: Returns issue URL and success confirmation - **MANDATORY** URL output
+3. **Preview Generation**: Shows structured requirements preview for user review
+4. **User Confirmation**: User confirms before proceeding to creation
+5. **PHASE 2 - Issue-Writer**: Creates final GitHub issue in current repository with structured requirements
+6. **Result**: Returns issue URL and success confirmation - **MANDATORY** URL output
 
-**CRITICAL**: Never skip agent phases. Interactive mode still requires all three sequential agent executions.
+**CRITICAL**: Never skip agent phases. Interactive mode still requires both sequential agent executions.
 
 ## Output Formats
 
@@ -266,7 +253,7 @@ Assignee: @username
 - Ready for development
 
 ⏱️  Processing time: 2.3s
-🤖 Agents used: task-decomposition-expert, prompt-engineer, issue-writer
+🤖 Agents used: task-decomposition-expert, issue-writer
 
 🔗 Issue URL: https://github.com/owner/repo/issues/123
 ```
@@ -286,7 +273,7 @@ Assignee: @username
   },
   "metrics": {
     "processing_time": "2.3s",
-    "agents_used": ["task-decomposition-expert", "prompt-engineer", "issue-writer"],
+    "agents_used": ["task-decomposition-expert", "issue-writer"],
     "template_confidence": 0.95,
     "enhancement_score": 8.7
   },
@@ -380,18 +367,13 @@ commands/create-gh-issue/
 
 ### Agent Integration
 
-#### Compatible Agents
-- **task-decomposition-expert**: Primary orchestrator for complexity analysis
-- **prompt-engineer**: Description optimization and enhancement
-- **issue-writer**: Final issue creation with template application
-- **pr-reviewer**: Can review generated issue content for quality
-- **test-automator**: Can validate issue structure and format
+#### Required Agents
+- **task-decomposition-expert**: Task complexity analysis, requirements structuring, template recommendation
+- **issue-writer**: GitHub issue creation with proper formatting and structure
 
 #### Agent Capabilities Required
-- **task-decomposition-expert**: Task complexity analysis, template recommendation
-- **prompt-engineer**: Content optimization, structure enhancement
-- **issue-writer**: GitHub issue creation, template application
-- **JSON Processing**: All agents must support structured JSON communication
+- **Context Management**: All agents must read and update shared context files
+- **GitHub Integration**: issue-writer must support `gh` CLI for issue creation
 - **Error Handling**: Robust error reporting and recovery mechanisms
 
 ## Integration with Other Commands
@@ -415,11 +397,9 @@ pr-checks https://github.com/owner/repo/pull/456  # Monitor PR checks
 ## Performance Targets
 
 - **Simple task processing**: < 5 seconds end-to-end
-- **Complex story analysis**: < 15 seconds with full agent coordination
+- **Complex project analysis**: < 15 seconds with both agent phases
 - **Interactive mode completion**: < 30 seconds including user interaction
-- **Memory usage**: < 50MB during execution
-- **Concurrent execution**: Supports 3+ simultaneous instances
-- **Agent coordination**: < 10 seconds for multi-agent workflows
+- **Agent coordination**: < 10 seconds for two-agent workflows
 
 ## Troubleshooting
 
@@ -495,24 +475,23 @@ create-gh-issue --dry-run --verbose "task description"
 **MANDATORY**: This command MUST follow Agent-First Task Execution guidelines from CLAUDE.md:
 
 ### Required Agent Routing
-1. **NEVER create issues directly** - always use the three-phase agent workflow
+1. **NEVER create issues directly** - always use the two-phase agent workflow
 2. **Sequential execution** - each phase must complete before the next begins
-3. **Agent specialization** - each agent handles their domain expertise only
-4. **Output chaining** - each agent builds on the previous agent's output
+3. **Context sharing** - each agent reads and updates the shared context file
+4. **Agent specialization** - each agent handles their domain expertise only
 
 ### Compliance Verification
 Before using this command, verify:
-- [ ] Task-decomposition-expert analyzes complexity and template requirements
-- [ ] Prompt-engineer optimizes description for clarity and completeness  
+- [ ] Task-decomposition-expert analyzes complexity, structures requirements, and determines template
 - [ ] Issue-writer creates the final GitHub issue with proper structure
-- [ ] All phases complete successfully before reporting completion
+- [ ] Both phases complete successfully before reporting completion
+- [ ] Context file is created and shared between agents
 - [ ] No direct issue creation bypasses the agent workflow
 
 ### Enforcement Mechanisms
 - Command documentation mandates agent usage at every step
 - Examples show only proper Task() tool routing to agents
-- Interactive mode requires all three agent phases
-- Dry-run mode still routes through complete agent workflow
-- All usage patterns demonstrate sequential agent coordination
+- Interactive mode requires both agent phases
+- All usage patterns demonstrate sequential agent coordination with context sharing
 
 This command exemplifies best practices in Agent-First multi-agent coordination while delivering practical value for GitHub issue management workflows.
