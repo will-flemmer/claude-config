@@ -21,7 +21,6 @@ Before creating the issue, the command will ask clarifying questions to ensure t
 2. **Acceptance Criteria**: Gather specific success metrics if not provided
 3. **Technical Context**: Ask about implementation preferences or constraints
 4. **Dependencies**: Identify any blocking issues or prerequisites
-5. **Priority/Labels**: Determine urgency and appropriate categorization
 
 The command uses these answers to enhance the issue quality before routing to agents.
 
@@ -29,15 +28,7 @@ The command uses these answers to enhance the issue quality before routing to ag
 
 - `-h, --help`: Show detailed help message with examples
 - `-i, --interactive`: Interactive mode for complex requirements gathering
-- `--template <type>`: Force specific issue template (task|story|project)
-- `--json`: Output in JSON format for agent consumption
-- `--dry-run`: Preview the issue structure without creating it
-- `--repo <owner/repo>`: Target repository (defaults to current repo)
-- `--labels <label1,label2>`: Comma-separated labels to add
 - `--milestone <milestone>`: Milestone to assign to the issue
-- `--assignee <username>`: User to assign the issue to
-- `--format=FORMAT`: Output format (text|json) - json for agent use
-- `--batch`: Non-interactive mode for agent execution
 
 ## Multi-Agent Workflow with Context Sharing
 
@@ -67,178 +58,67 @@ Create Context File →
 
 ## Issue Templates
 
-### Template: "task" (Simple, Single Action)
-- **Trigger**: Single, specific actionable item
-- **Structure**: Clear objective, acceptance criteria, implementation notes
-- **Example**: "Add dark mode toggle to user settings"
-- **Auto-detected when**: Simple, focused request with clear scope
-
-### Template: "story" (Complex Feature)
-- **Trigger**: Multiple related tasks or complex feature development
-- **Structure**: User story format, multiple acceptance criteria, task breakdown
-- **Example**: "Implement user authentication system"  
-- **Auto-detected when**: Multiple components, user-facing functionality
-
-### Template: "project" (Large Initiative)
-- **Trigger**: Multiple stories/features, long-term initiative
-- **Structure**: Project overview, milestone breakdown, dependencies, success metrics
-- **Example**: "Build complete e-commerce platform"
-- **Auto-detected when**: Cross-cutting concerns, multiple milestones
+The command automatically detects the appropriate template based on task complexity:
+- **Simple tasks**: Single, specific actionable items
+- **Complex features**: Multiple related tasks or feature development
+- **Large projects**: Multiple stories/features requiring milestone breakdown
 
 ## Examples
 
-### Human Usage
-
-#### Simple Task Creation
+### Basic Usage
 ```bash
-# Single actionable item
+# Simple task
 create-gh-issue "Add search functionality to the user dashboard"
 
 # Expected: 
-# 1. Asks clarifying questions about search requirements, UI preferences, etc.
-# 2. Creates task-template issue with clear acceptance criteria in CURRENT repository
+# 1. Asks clarifying questions about search requirements
+# 2. Creates issue with clear acceptance criteria
 # Output: Issue #123 created at https://github.com/owner/repo/issues/123
 ```
 
-#### Complex Feature with Interactive Mode
+### Interactive Mode
 ```bash
-# Complex feature requiring clarification
+# Complex feature needing detailed requirements
 create-gh-issue --interactive "Build user notification system"
 
-# Expected: Interactive session gathering requirements
-# - Shows initial analysis from task-decomposition-expert
-# - Presents clarifying questions for missing information
-# - Collects additional details from user
-# - Displays preview of optimized issue structure
-# - Confirms before creation
+# Expected:
+# - Asks about notification types, delivery methods, etc.
+# - Shows preview before creation
+# - Creates comprehensive issue
 ```
 
-#### Force Specific Template
+### Agent Workflow (Internal)
 ```bash
-# Force project template for large initiative
-create-gh-issue --template project "Migrate legacy API to GraphQL"
+# The command internally uses this workflow:
 
-# Expected: Uses project template with milestone breakdown
+# 1. Ask clarifying questions
+# 2. Create context file with answers
+# 3. Route through task-decomposition-expert for analysis
+# 4. Route through issue-writer for GitHub issue creation
+# 5. Return issue URL
 ```
 
-#### Target Specific Repository
-```bash
-# Create issue in different repository
-create-gh-issue --repo myorg/frontend "Update React to version 18"
-
-# Expected: Creates issue in myorg/frontend repository
-```
-
-#### Add Labels and Assignment
-```bash
-# Create with labels and assignee
-create-gh-issue --labels "enhancement,ui" --assignee "developer1" "Add dark mode support"
-
-# Expected: Issue created with enhancement and ui labels, assigned to developer1
-```
-
-### Agent Usage
-
-#### Proper Agent Workflow Execution with Context Sharing
-```bash
-# MANDATORY: Create context file and use sequential agent routing via Task tool
-# ALWAYS ask clarifying questions before starting agent workflow
-
-# Step 0: Ask clarifying questions
-# - What specific profile fields should be editable?
-# - Should this include avatar upload functionality?
-# - Any validation requirements for profile fields?
-# - Should changes require email confirmation?
-# - What are the success criteria?
-
-# Step 1: Create context file with user's answers
-context_file="tasks/create_issue.md"
-# Initialize context file with objective and answers to questions
-
-# PHASE 1: Task analysis and decomposition
-Task(subagent_type="task-decomposition-expert", 
-     description="Analyze issue complexity",
-     prompt="Context file: tasks/create_issue.md. Analyze the following task for GitHub issue creation: 'Add user profile editing functionality' with these requirements: [answers from questions]. Determine optimal template type (task/story/project), structure requirements clearly, and provide comprehensive analysis ready for issue creation. Update context file with findings.")
-
-# PHASE 2: GitHub issue creation (reads context from Phase 1)
-Task(subagent_type="issue-writer", 
-     description="Create GitHub issue",
-     prompt="Context file: tasks/create_issue.md. Read structured requirements from task analysis and create a comprehensive GitHub issue. Use appropriate template and ensure professional structure ready for development. Update context file with created issue number and URL.")
-
-# Expected: Complete context from questions ensures high-quality issue creation
-```
-
-#### Complex Project Creation
-```bash
-# MANDATORY: Large projects require context file and all three agent phases
-
-# Step 1: Create context file for complex project
-context_file="tasks/create_issue.md"
-
-# PHASE 1: Project complexity analysis
-Task(subagent_type="task-decomposition-expert", 
-     description="Analyze project complexity",
-     prompt="Context file: tasks/create_issue.md. Analyze complex project: 'Build complete CI/CD pipeline with Docker integration'. Break down into milestones, identify dependencies, determine project template requirements, structure comprehensive requirements, and provide detailed analysis ready for issue creation. Update context file with complete breakdown.")
-
-# PHASE 2: Project issue creation
-Task(subagent_type="issue-writer", 
-     description="Create project issue",
-     prompt="Context file: tasks/create_issue.md. Read complete project structure from context and create comprehensive GitHub project issue. Apply project template, structure milestones clearly, and ensure enterprise-ready documentation. Update context with issue URL.")
-
-# Expected: Comprehensive project issue with shared context across all agents
-```
-
-#### Dry Run for Preview
-```bash
-# MANDATORY: Even dry runs must use proper agent workflow
-
-# PHASE 1: Analysis for preview
-Task(subagent_type="task-decomposition-expert", 
-     description="Analyze for preview",
-     prompt="Analyze 'Implement real-time chat feature' for dry-run preview. Determine template type, complexity level, and requirements structure. Provide analysis ready for description optimization.")
-
-# PHASE 2: Description optimization for preview
-Task(subagent_type="prompt-engineer", 
-     description="Optimize for preview",
-     prompt="Using analysis: [PHASE_1_OUTPUT], optimize 'Implement real-time chat feature' description. Create structured preview content showing what the final GitHub issue would contain, including acceptance criteria and technical notes.")
-
-# PHASE 3: Preview structure generation (no actual GitHub creation)
-Task(subagent_type="issue-writer", 
-     description="Generate preview structure",
-     prompt="Using optimized content: [PHASE_2_OUTPUT], generate comprehensive issue preview for 'real-time chat feature'. Show complete structure, template format, suggested labels, but do not create actual GitHub issue. Provide detailed preview of final result.")
-
-# Expected: Complete issue preview showing structure without GitHub creation
-```
 
 ## Features
 
 ### Automatic Repository Detection
-- **IMPORTANT**: Creates GitHub issue in the current repository by default
+- Creates GitHub issue in the current repository
 - Detects current git repository using `gh repo view`
 - Validates repository permissions before issue creation
-- Supports cross-repository issue creation with `--repo` flag
-- Graceful fallback with clear error messages
 - **MANDATORY**: Always prints the GitHub issue URL at the end of execution
 
 ### Intelligent Template Selection
 - **Complexity Analysis**: Uses task-decomposition-expert to assess scope
-- **Content Analysis**: Examines keywords and structure for template hints
-- **User Override**: Supports manual template selection with `--template`
-- **Preview Mode**: Shows template choice reasoning in `--dry-run`
+- **Content Analysis**: Automatically determines appropriate structure
 
 ### Quality Validation
-- **Title Optimization**: Ensures clear, actionable titles (< 80 characters)
-- **Structure Enforcement**: Validates template-specific structure requirements
+- **Title Optimization**: Ensures clear, actionable titles
 - **Acceptance Criteria**: Generates specific, measurable criteria
 - **Technical Notes**: Includes implementation guidance when relevant
-- **Label Suggestions**: Recommends appropriate labels based on content
 
 ### Multi-Agent Coordination
 - **Orchestrated Workflow**: Seamless hand-off between specialized agents
-- **Error Recovery**: Robust handling of agent communication failures  
-- **Progress Tracking**: Clear indicators during multi-step processing
-- **Caching**: Intermediate results cached to avoid re-processing
-- **Timeout Management**: Prevents indefinite blocking on agent responses
+- **Context Sharing**: Agents share information via context files
 
 ## Interactive Mode Flow
 
@@ -249,7 +129,6 @@ Task(subagent_type="issue-writer",
    - What are the specific acceptance criteria?
    - Are there any technical constraints or preferences?
    - Are there any dependencies or blocking issues?
-   - What priority/labels should be applied?
 2. **PHASE 1 - Task-Decomposition-Expert**: Analyzes enriched input with answers, structures complete requirements
 3. **Preview Generation**: Shows structured requirements preview for user review
 4. **User Confirmation**: User confirms before proceeding to creation
@@ -268,64 +147,15 @@ Title: Add dark mode toggle to user settings
 Issue: #123
 URL: https://github.com/owner/repo/issues/123
 Template: task
-Labels: enhancement, ui
-Assignee: @username
 
 📋 Issue Summary:
 - Clear acceptance criteria defined
 - Implementation notes included
 - Ready for development
 
-⏱️  Processing time: 2.3s
-🤖 Agents used: task-decomposition-expert, issue-writer
-
 🔗 Issue URL: https://github.com/owner/repo/issues/123
 ```
 
-### JSON Output (--json flag)
-```json
-{
-  "success": true,
-  "issue": {
-    "number": 123,
-    "url": "https://github.com/owner/repo/issues/123",
-    "title": "Add dark mode toggle to user settings",
-    "template": "task",
-    "labels": ["enhancement", "ui"],
-    "assignee": "username",
-    "milestone": null
-  },
-  "metrics": {
-    "processing_time": "2.3s",
-    "agents_used": ["task-decomposition-expert", "issue-writer"],
-    "template_confidence": 0.95,
-    "enhancement_score": 8.7
-  },
-  "preview": {
-    "title": "Add dark mode toggle to user settings",
-    "body": "## Objective\n\nImplement a dark mode toggle...",
-    "labels_suggested": ["enhancement", "ui", "accessibility"]
-  }
-}
-```
-
-### Error Output (JSON format)
-```json
-{
-  "success": false,
-  "error": {
-    "code": "REPO_NOT_FOUND",
-    "message": "Repository not found or insufficient permissions",
-    "details": "Unable to access repository 'myorg/nonexistent'",
-    "resolution": "Verify repository name and check GitHub permissions"
-  },
-  "context": {
-    "command": "create-gh-issue",
-    "repository": "myorg/nonexistent",
-    "user_input": "Add new feature"
-  }
-}
-```
 
 ## Requirements
 
@@ -347,29 +177,10 @@ Assignee: @username
 
 ## Error Handling
 
-### Repository Validation
-- **Not in git repository**: Clear guidance to initialize or specify `--repo`
-- **Repository not found**: Validates repository existence and accessibility
+- **Not in git repository**: Clear message to navigate to a git repository
 - **Insufficient permissions**: Checks issue creation permissions
-- **Network issues**: Graceful handling with retry mechanisms
-
-### Agent Communication
-- **Agent unavailable**: Fallback to simplified processing modes
-- **Timeout handling**: Prevents indefinite waiting for agent responses
-- **Communication failures**: Robust error recovery and user notifications
-- **Partial results**: Handles incomplete agent responses gracefully
-
-### Input Validation
 - **Empty descriptions**: Prompts for meaningful task descriptions
-- **Invalid templates**: Validates template names and provides options
-- **Malformed labels**: Validates label format and suggestions
-- **Invalid assignees**: Checks user existence in repository context
-
-### GitHub API Issues
-- **Rate limiting**: Automatic retry with exponential backoff
-- **API errors**: Detailed error messages with resolution guidance
-- **Authentication failures**: Clear instructions for re-authentication
-- **Permission errors**: Specific guidance for permission issues
+- **GitHub CLI not authenticated**: Instructions to run `gh auth login`
 
 ## Implementation
 
@@ -400,30 +211,7 @@ commands/create-gh-issue/
 - **GitHub Integration**: issue-writer must support `gh` CLI for issue creation
 - **Error Handling**: Robust error reporting and recovery mechanisms
 
-## Integration with Other Commands
 
-### Complementary Commands
-- **pr-checks**: Monitor PR status after issue implementation
-- **commit-and-push**: Commit changes made during issue development
-- **review-pr**: Review PRs created to address issues
-- **update-tests**: Update tests as issues are implemented
-
-### Workflow Integration
-```bash
-# Complete issue-to-deployment workflow
-create-gh-issue "Add user authentication feature"  # Creates issue #123
-# ... development work ...
-commit-and-push "feat: implement user authentication (#123)"
-# ... create PR ...
-pr-checks https://github.com/owner/repo/pull/456  # Monitor PR checks
-```
-
-## Performance Targets
-
-- **Simple task processing**: < 5 seconds end-to-end
-- **Complex project analysis**: < 15 seconds with both agent phases
-- **Interactive mode completion**: < 30 seconds including user interaction
-- **Agent coordination**: < 10 seconds for two-agent workflows
 
 ## Troubleshooting
 
@@ -433,66 +221,22 @@ pr-checks https://github.com/owner/repo/pull/456  # Monitor PR checks
 ```bash
 # Verify you're in a git repository
 git status
-
-# Or specify repository explicitly
-create-gh-issue --repo owner/repo "task description"
 ```
 
 #### "GitHub CLI not authenticated"
 ```bash
 # Authenticate with GitHub
 gh auth login
-
-# Verify authentication
-gh auth status
-```
-
-#### "Agent communication timeout"
-```bash
-# Retry with simplified mode (bypasses some agents)
-create-gh-issue --simple "task description"
-
-# Or use dry-run to test without agent coordination
-create-gh-issue --dry-run "task description"
-```
-
-#### "Invalid template selected"
-```bash
-# Check available templates
-create-gh-issue --help
-
-# Force specific template
-create-gh-issue --template task "description"
-```
-
-### Debug Information
-
-Enable verbose logging:
-```bash
-# Enable debug output
-DEBUG=1 create-gh-issue "task description"
-
-# Or use dry-run for structure preview
-create-gh-issue --dry-run --verbose "task description"
 ```
 
 ## Quality Standards
 
-### Issue Quality Validation
-- **Title clarity**: Clear, actionable titles under 80 characters
-- **Template adherence**: Proper structure following selected template
-- **Acceptance criteria**: Specific, measurable, achievable criteria
+### Quality Standards
+- **Title clarity**: Clear, actionable titles
+- **Acceptance criteria**: Specific, measurable criteria
 - **Technical guidance**: Implementation notes when applicable
-- **Label accuracy**: Relevant labels based on content analysis
-- **Assignee validation**: Verified user access in repository context
-
-### Command Quality Requirements
-- **Response time**: < 10 seconds for standard workflows
-- **Error recovery**: Graceful handling of all failure scenarios
-- **Progress feedback**: Clear indicators during multi-step processing
-- **Input validation**: Comprehensive validation with helpful error messages
-- **Output consistency**: Reliable format across different input types
-- **Agent reliability**: Robust coordination with timeout protection
+- **Error recovery**: Graceful handling of failures
+- **Input validation**: Validation with helpful error messages
 
 ## Agent-First Execution Requirements
 
