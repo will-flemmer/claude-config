@@ -95,7 +95,7 @@ Each specialized agent receives:
 ### 4. Automated Fix Implementation
 Agents automatically:
 - Implement their specialized fixes
-- Use `auto-commit-fixes.sh` for seamless commits
+- Use standard git commands for committing and pushing
 - Push changes with descriptive commit messages
 - Monitor for new check execution
 
@@ -217,7 +217,7 @@ diagnostics = mcp__ide__getDiagnostics(uri="file:///path/to/failing/file")
 
 ### Fallback Strategies
 When MCP tools are unavailable, use:
-- Shell scripts: `pr-checks.sh`, `check-logs.sh`, `commit-and-push.sh`
+- Shell scripts: `pr-checks.sh`, `check-logs.sh`
 - Log parsing: grep, awk for error extraction
 - Pattern matching: Identify common failure patterns
 - Manual fixes: Direct file edits based on errors

@@ -116,7 +116,7 @@ For manual execution with the basic `pr-checks.sh`, follow this process:
 3. **When checks fail**:
    - Analyze the failure logs (use `./commands/pr-checks/check-logs.sh <pr-url>` for full logs)
    - Fix the identified issues in the code
-   - Use `./commands/commit-and-push.sh "fix: <description>"` to commit and push
+   - Use standard git commands to commit and push fixes
 4. **WAIT AGAIN**: After pushing, use `sleep 60` to allow new checks to start and complete
 5. **Continue watching**: The pushed changes will trigger new checks
 6. **Repeat until all checks pass**: Keep watching and fix any new failures
@@ -126,7 +126,7 @@ For manual execution with the basic `pr-checks.sh`, follow this process:
 - **ALWAYS USE `sleep 60`** between check runs to allow GitHub Actions to complete
 - After pushing fixes, do NOT exit. Keep watching the PR to ensure the fixes resolve all issues
 - Wait for checks to reach a final state (not "in progress") before analyzing
-- Always use the provided scripts (pr-checks.sh, check-logs.sh, commit-and-push.sh)
+- Always use the provided scripts (pr-checks.sh, check-logs.sh)
 - Do NOT run custom `gh` or `git` commands directly
 
 ## Error Handling
