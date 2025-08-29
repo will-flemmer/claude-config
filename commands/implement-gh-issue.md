@@ -1,15 +1,16 @@
 # implement-gh-issue
 
-Implements GitHub issues through TDD methodology with automated feedback loops using context-sharing agents.
+Fully automated GitHub issue implementation using TDD methodology with multi-agent feedback loops.
 
 ## Overview
 
-This workflow guides you through implementing a GitHub issue using:
-- **TDD-Developer**: Implements features using Test-Driven Development
-- **PR-Checker**: Analyzes CI/CD failures and provides fix guidance
-- **PR-Reviewer**: Reviews code quality and requirements compliance
-
-All agents share context through a session file to maintain continuity.
+This command takes a GitHub issue URL and automatically:
+1. **Creates context file** with complete issue information
+2. **Implements solution** using TDD methodology
+3. **Creates pull request** with proper linking
+4. **Runs CI/CD checks** and fixes failures automatically
+5. **Performs code review** and implements feedback
+6. **Repeats feedback loop** until completion criteria met
 
 ## Usage
 
@@ -17,152 +18,77 @@ All agents share context through a session file to maintain continuity.
 implement-gh-issue <github_issue_url>
 ```
 
-## Workflow
+The command handles everything automatically - no manual steps required.
 
-### 1. Setup
-Create a context file and feature branch for the GitHub issue.
+When you run this command, Claude executes the following automated workflow:
 
-Example for issue: https://github.com/owner/repo/issues/123
+**Instructions to give Claude:**
+> "Please fully implement the GitHub issue at <github_issue_url> using this automated workflow:
+> 
+> 1. **SETUP PHASE:**
+>    - Extract issue number and title from the GitHub issue URL using `gh issue view`
+>    - Create context file at tasks/issue_<number>.md with complete issue information
+>    - Create and switch to feature branch: feature/issue-<number>-<title-slug>
+> 
+> 2. **IMPLEMENTATION PHASE:**
+>    - Read context file to understand requirements
+>    - Implement solution using strict TDD methodology (RED-GREEN-REFACTOR)
+>    - Write comprehensive tests first, then minimal implementation
+>    - Run tests and linting to ensure quality
+>    - Update context file with implementation progress
+> 
+> 3. **PR CREATION PHASE:**
+>    - Commit changes with proper message format
+>    - Push to feature branch
+>    - Create pull request linking to original issue
+>    - Update context file with PR URL
+> 
+> 4. **FEEDBACK LOOP PHASE (repeat until completion):**
+>    - Use Task tool with pr-checker agent to analyze CI/CD status and failures
+>    - If CI/CD passes, use Task tool with pr-reviewer agent for code quality review
+>    - If fixes needed, implement them using TDD methodology
+>    - Commit and push fixes
+>    - Update context file with changes
+>    - Continue loop until all checks pass and review approves
+> 
+> 5. **COMPLETION:**
+>    - Verify all completion criteria met
+>    - Update context file with final status
+> 
+> Handle all phases automatically. Use context file tasks/issue_<number>.md to track progress. Handle errors gracefully and document everything."
 
-**Get issue information:**
-```
-gh issue view https://github.com/owner/repo/issues/123
-```
-This shows you the complete issue to copy into the context file.
+## How It Works
 
-**Create files:**
-- Context file: `tasks/issue_<number>.md`  
-- Feature branch: `feature/issue-<number>-<title-slug>`
+The main Claude agent handles the entire workflow by:
 
-### 2. Create Context File
-Copy the **complete** GitHub issue into a context file:
-
-```
-# Issue #<number> - <title>
-
-## Meta
-- **GitHub Issue**: <github_issue_url>
-- **Branch**: feature/issue-<number>-<title-slug>
-
-## GitHub Issue (Complete)
-
-### Title
-Add User Authentication
-
-### Number
-#123
-
-### Description
-[Paste the complete GitHub issue body here - everything from the issue]
-
-### Labels
-- enhancement
-- backend
-- security
-
-### Assignee
-@username
-
-### Acceptance Criteria
-[Copy any acceptance criteria from the issue or comments]
-
-### Additional Context
-[Copy any relevant comments or clarifications from the GitHub issue thread]
-
-## Current State
-Ready for TDD implementation
-
-## Agent Activity Log
-[Agents will update this section]
-
-## Working Notes
-[Current agent workspace]
-```
-
-### 3. TDD Implementation
-Copy and paste this exact Task command:
-
-```
-Task(subagent_type="tdd-developer", 
-     description="Implement GitHub issue using TDD",
-     prompt="Context file: tasks/issue_<number>.md. Read the complete GitHub issue from the context file and implement the requirements using strict TDD methodology - create comprehensive tests first, then implement the solution following existing project patterns. Update the context file with your implementation progress.")
-```
-
-**Replace `<number>` with the actual issue number.**
-
-### 4. Create Pull Request
-After TDD implementation is complete:
-
-1. Commit changes with message: "feat: implement issue #123 - Add User Authentication"
-2. Push to branch: `feature/issue-123-add-user-authentication`
-3. Create PR with title: "feat: Add User Authentication"
-4. Link to issue in PR body: "Closes #123"
-
-### 5. Feedback Loop (Repeat until complete)
-
-#### Check CI/CD Status
-Copy and paste this Task command:
-
-```
-Task(subagent_type="pr-checker", 
-     description="Check PR CI/CD status",
-     prompt="Context file: tasks/issue_<number>.md. Check the pull request for failing CI/CD checks. Analyze any failures by type and urgency, then provide specific guidance for fixes. Update the context file with your analysis.")
-```
-
-**Replace `<number>` with the actual issue number.**
-
-#### If CI/CD passes, do code review
-Copy and paste this Task command:
-
-```
-Task(subagent_type="pr-reviewer", 
-     description="Review PR implementation",
-     prompt="Context file: tasks/issue_<number>.md. Review the pull request implementation for code quality, security, performance, and adherence to the original GitHub issue requirements. Use the mandatory structured format to clearly indicate if changes are required and if the objective is met. Update the context file with your review findings.")
-```
-
-**Replace `<number>` with the actual issue number.**
-
-#### If fixes needed
-Copy and paste this Task command:
-
-```
-Task(subagent_type="tdd-developer", 
-     description="Implement fixes",
-     prompt="Context file: tasks/issue_<number>.md. Read the feedback from previous agents (pr-checker or pr-reviewer) and implement the necessary fixes using TDD methodology. Ensure all existing tests still pass while addressing the feedback. Update the context file with the changes you made.")
-```
-
-**Replace `<number>` with the actual issue number.**
-
-Then commit and push the fixes.
+1. **Analyzing the GitHub issue** and extracting requirements
+2. **Implementing the solution** using strict TDD methodology 
+3. **Coordinating specialized agents** (pr-checker, pr-reviewer) when needed
+4. **Managing the context file** to track progress across all phases
+5. **Handling the feedback loop** automatically until completion criteria met
 
 ## Completion Criteria
 
-The workflow is complete when:
+The automated workflow completes when:
 - ✅ All CI/CD checks pass
-- ✅ PR reviewer indicates "Changes Required: NO"
+- ✅ PR reviewer indicates "Changes Required: NO"  
 - ✅ PR reviewer confirms "Original Issue Requirements Met: YES"
+- ✅ Context file updated with final status
 
-## Context File Structure
+## Error Handling
 
-The shared context file maintains:
-- **Meta**: Session info, issue URL, branch name
-- **Objective**: GitHub issue requirements
-- **Current State**: Implementation progress
-- **Agent Activity Log**: What each agent accomplished
-- **Working Notes**: Temporary workspace for current agent
+Claude automatically handles:
+- **Invalid GitHub issue URLs**: Validates issue exists before proceeding
+- **Implementation failures**: Documents blockers and suggests resolution
+- **CI/CD failures**: Automatically attempts fixes using feedback from agents
+- **Cycle limits**: Stops after 5 feedback cycles to prevent infinite loops
 
-## Error Conditions
+## Benefits
 
-- **Invalid GitHub issue**: "NO GH ISSUE FOUND"
-- **Implementation failure**: "INITIAL IMPLEMENTATION FAILED COMPLETELY"
-- **Too many cycles**: Stop after 5 feedback cycles
+- **Zero manual intervention** required
+- **Consistent TDD methodology** enforced
+- **Automated quality checks** via CI/CD and code review
+- **Complete traceability** through context file
+- **Handles edge cases** and failures gracefully
 
-## Agent Updates Required
-
-All three agents have been updated to:
-- Read context files using Read tool
-- Update context files using Edit tool
-- Work iteratively through feedback cycles
-- Provide structured, actionable feedback
-
-This workflow ensures high-quality implementations that fully satisfy GitHub issue requirements through continuous TDD and feedback loops.
+Simply provide the GitHub issue URL and let the agents handle the rest.

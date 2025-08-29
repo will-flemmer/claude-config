@@ -8,7 +8,7 @@
 
 | Task Type | Agent | Context Required |
 |-----------|-------|------------------|
-| Code implementation | language-specific agents | Yes* |
+| Code implementation | main Claude agent | Yes* |
 | Code review/quality | pr-reviewer | Yes* |
 | PR management | pr-checker | Yes* |
 | Issue creation | issue-writer | Yes* |

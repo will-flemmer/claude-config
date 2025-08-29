@@ -13,6 +13,18 @@ create-gh-issue [OPTIONS] <task_description>
 create-gh-issue [OPTIONS] --interactive
 ```
 
+### Pre-Creation Questions
+
+Before creating the issue, the command will ask clarifying questions to ensure the issue is complete and well-structured:
+
+1. **Task Type**: Confirm if it's a task, story, or project
+2. **Acceptance Criteria**: Gather specific success metrics if not provided
+3. **Technical Context**: Ask about implementation preferences or constraints
+4. **Dependencies**: Identify any blocking issues or prerequisites
+5. **Priority/Labels**: Determine urgency and appropriate categorization
+
+The command uses these answers to enhance the issue quality before routing to agents.
+
 ## Options
 
 - `-h, --help`: Show detailed help message with examples
@@ -33,8 +45,8 @@ create-gh-issue [OPTIONS] --interactive
 
 ### Context File Creation
 **CRITICAL**: Before starting the agent workflow:
-1. Generate session ID: `issue_$(date +%Y%m%d_%H%M%S)_$(echo $RANDOM)`
-2. Create context file: `tasks/session_context_<session_id>.md`
+1. Use simple context file naming: `tasks/create_issue.md`
+2. Create context file with task description and requirements
 3. Pass context file path to ALL agents in their prompts
 
 The command enforces two sequential agent phases with shared context:
@@ -82,7 +94,9 @@ Create Context File →
 # Single actionable item
 create-gh-issue "Add search functionality to the user dashboard"
 
-# Expected: Creates task-template issue with clear acceptance criteria in CURRENT repository
+# Expected: 
+# 1. Asks clarifying questions about search requirements, UI preferences, etc.
+# 2. Creates task-template issue with clear acceptance criteria in CURRENT repository
 # Output: Issue #123 created at https://github.com/owner/repo/issues/123
 ```
 
@@ -128,43 +142,48 @@ create-gh-issue --labels "enhancement,ui" --assignee "developer1" "Add dark mode
 #### Proper Agent Workflow Execution with Context Sharing
 ```bash
 # MANDATORY: Create context file and use sequential agent routing via Task tool
-# NEVER use create-gh-issue directly - always route through proper agent workflow
+# ALWAYS ask clarifying questions before starting agent workflow
 
-# Step 1: Create session context file
-session_id="issue_$(date +%Y%m%d_%H%M%S)_$RANDOM"
-context_file="tasks/session_context_${session_id}.md"
-# Initialize context file with objective
+# Step 0: Ask clarifying questions
+# - What specific profile fields should be editable?
+# - Should this include avatar upload functionality?
+# - Any validation requirements for profile fields?
+# - Should changes require email confirmation?
+# - What are the success criteria?
+
+# Step 1: Create context file with user's answers
+context_file="tasks/create_issue.md"
+# Initialize context file with objective and answers to questions
 
 # PHASE 1: Task analysis and decomposition
 Task(subagent_type="task-decomposition-expert", 
      description="Analyze issue complexity",
-     prompt="Context file: ${context_file}. Analyze the following task for GitHub issue creation: 'Add user profile editing functionality'. Determine optimal template type (task/story/project), identify missing requirements, structure requirements clearly, and provide comprehensive analysis ready for issue creation. Update context file with findings.")
+     prompt="Context file: tasks/create_issue.md. Analyze the following task for GitHub issue creation: 'Add user profile editing functionality' with these requirements: [answers from questions]. Determine optimal template type (task/story/project), structure requirements clearly, and provide comprehensive analysis ready for issue creation. Update context file with findings.")
 
 # PHASE 2: GitHub issue creation (reads context from Phase 1)
 Task(subagent_type="issue-writer", 
      description="Create GitHub issue",
-     prompt="Context file: ${context_file}. Read structured requirements from task analysis and create a comprehensive GitHub issue. Use appropriate template and ensure professional structure ready for development. Update context file with created issue number and URL.")
+     prompt="Context file: tasks/create_issue.md. Read structured requirements from task analysis and create a comprehensive GitHub issue. Use appropriate template and ensure professional structure ready for development. Update context file with created issue number and URL.")
 
-# Expected: Each phase reads shared context and builds on previous findings
+# Expected: Complete context from questions ensures high-quality issue creation
 ```
 
 #### Complex Project Creation
 ```bash
 # MANDATORY: Large projects require context file and all three agent phases
 
-# Step 1: Create session context for complex project
-session_id="project_$(date +%Y%m%d_%H%M%S)_$RANDOM"
-context_file="tasks/session_context_${session_id}.md"
+# Step 1: Create context file for complex project
+context_file="tasks/create_issue.md"
 
 # PHASE 1: Project complexity analysis
 Task(subagent_type="task-decomposition-expert", 
      description="Analyze project complexity",
-     prompt="Context file: ${context_file}. Analyze complex project: 'Build complete CI/CD pipeline with Docker integration'. Break down into milestones, identify dependencies, determine project template requirements, structure comprehensive requirements, and provide detailed analysis ready for issue creation. Update context file with complete breakdown.")
+     prompt="Context file: tasks/create_issue.md. Analyze complex project: 'Build complete CI/CD pipeline with Docker integration'. Break down into milestones, identify dependencies, determine project template requirements, structure comprehensive requirements, and provide detailed analysis ready for issue creation. Update context file with complete breakdown.")
 
 # PHASE 2: Project issue creation
 Task(subagent_type="issue-writer", 
      description="Create project issue",
-     prompt="Context file: ${context_file}. Read complete project structure from context and create comprehensive GitHub project issue. Apply project template, structure milestones clearly, and ensure enterprise-ready documentation. Update context with issue URL.")
+     prompt="Context file: tasks/create_issue.md. Read complete project structure from context and create comprehensive GitHub project issue. Apply project template, structure milestones clearly, and ensure enterprise-ready documentation. Update context with issue URL.")
 
 # Expected: Comprehensive project issue with shared context across all agents
 ```
@@ -223,16 +242,21 @@ Task(subagent_type="issue-writer",
 
 ## Interactive Mode Flow
 
-**MANDATORY AGENT WORKFLOW**: When using `--interactive` flag, must route through both agents:
+**MANDATORY AGENT WORKFLOW**: When using `--interactive` flag or when questions are needed, must route through both agents:
 
-1. **PHASE 1 - Task-Decomposition-Expert**: Analyzes user input, identifies gaps, and structures requirements
-2. **Gap Collection**: Gathers missing information from user via clarifying questions  
+1. **Initial Questions**: Ask clarifying questions upfront to gather all necessary information:
+   - What type of issue is this? (task/story/project)
+   - What are the specific acceptance criteria?
+   - Are there any technical constraints or preferences?
+   - Are there any dependencies or blocking issues?
+   - What priority/labels should be applied?
+2. **PHASE 1 - Task-Decomposition-Expert**: Analyzes enriched input with answers, structures complete requirements
 3. **Preview Generation**: Shows structured requirements preview for user review
 4. **User Confirmation**: User confirms before proceeding to creation
 5. **PHASE 2 - Issue-Writer**: Creates final GitHub issue in current repository with structured requirements
 6. **Result**: Returns issue URL and success confirmation - **MANDATORY** URL output
 
-**CRITICAL**: Never skip agent phases. Interactive mode still requires both sequential agent executions.
+**CRITICAL**: Always gather necessary information through questions BEFORE starting agent phases. This ensures agents have complete context for optimal issue creation.
 
 ## Output Formats
 
