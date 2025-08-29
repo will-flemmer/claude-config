@@ -60,18 +60,19 @@ Use this enhanced agent for:
 
 ## Enhanced PR Check Workflow
 
-### 1. Comprehensive PR Analysis (Enhanced Mode)
-Start with intelligent failure analysis:
+### 1. Comprehensive PR Analysis 
+Start with the pr-checks command:
 ```bash
-# Use enhanced pr-checks with intelligent analysis
-~/.claude/commands/pr-checks/pr-checks-enhanced.sh <github-pr-url>
+# Use pr-checks command for status monitoring
+pr-checks <github-pr-url>
 ```
 
 This automatically:
-- Gathers PR context (files, commits, repository info)
-- Detects languages, frameworks, and build tools
-- Analyzes failed checks with comprehensive log extraction
-- Creates structured failure analysis using prompt-engineer optimization
+- Shows PR title, branch, and state  
+- Lists all check runs with their status
+- Auto-watches when checks are in progress
+- Fetches logs for failed checks
+- Provides detailed error messages for debugging
 
 ### 2. Intelligent Agent Routing
 The enhanced workflow automatically:
@@ -100,29 +101,29 @@ Agents automatically:
 
 ### 5. Continuous Monitoring Until Success
 ```bash
-# Enhanced monitoring loop (built into pr-checks-enhanced.sh)
-# - Waits for check completion
-# - Re-analyzes any new failures
-# - Routes additional fixes as needed
-# - Continues until all checks pass
+# Use pr-checks command to monitor status
+pr-checks <github-pr-url>
+
+# The command auto-watches and waits for completion
+# Re-run after implementing fixes to check new status
 ```
 
-## Legacy Workflow (Basic Mode)
-For simple scenarios, use the basic workflow:
+## Basic Workflow
+Use the pr-checks command for monitoring:
 ```bash
-# Basic check monitoring
-~/.claude/commands/pr-checks/pr-checks.sh <github-pr-url>
+# Check PR status and watch for completion  
+pr-checks <github-pr-url>
 
-# Manual fix analysis and implementation
-# Then use: ~/.claude/commands/pr-checks/auto-commit-fixes.sh
+# After implementing fixes, run again to verify
+pr-checks <github-pr-url>
 ```
 
 ## Common Check Types and Fixes
 
 ### 1. Test Failures
 ```bash
-# Identify failing tests
-~/.claude/commands/pr-checks/check-logs.sh test
+# Monitor test status with pr-checks command
+pr-checks <github-pr-url>
 
 # Common fixes:
 # - Update test assertions
@@ -133,8 +134,8 @@ For simple scenarios, use the basic workflow:
 
 ### 2. Linting/Formatting Issues
 ```bash
-# Check linting errors
-~/.claude/commands/pr-checks/check-logs.sh lint
+# Check status with pr-checks command
+pr-checks <github-pr-url>
 
 # Auto-fix when possible:
 just lint-fix  # If available in Justfile
@@ -146,8 +147,8 @@ prettier --write .
 
 ### 3. Type Checking Errors
 ```bash
-# Analyze type errors
-~/.claude/commands/pr-checks/check-logs.sh typecheck
+# Monitor status with pr-checks command
+pr-checks <github-pr-url>
 
 # Fix strategies:
 # - Add missing type annotations
@@ -158,8 +159,8 @@ prettier --write .
 
 ### 4. Build Failures
 ```bash
-# Check build logs
-~/.claude/commands/pr-checks/check-logs.sh build
+# Check build status with pr-checks command
+pr-checks <github-pr-url>
 
 # Common fixes:
 # - Resolve import errors
@@ -221,15 +222,14 @@ When MCP tools are unavailable, use:
 - Pattern matching: Identify common failure patterns
 - Manual fixes: Direct file edits based on errors
 
-## Script Locations
+## Command Usage
 
-All PR check scripts are located in `~/.claude/commands/pr-checks/`:
-- `pr-checks.sh`: Check current PR status
-- `check-logs.sh`: Get detailed logs for specific checks
-- `commit-and-push.sh`: Commit changes and push to PR
-- Additional helper scripts as available
+Use the `pr-checks` command for all PR monitoring:
+- `pr-checks <github-pr-url>`: Check current PR status with auto-watch
+- The command automatically fetches logs for failed checks
+- Use standard git commands for committing and pushing fixes
 
-**IMPORTANT**: Always use these scripts instead of raw `gh` or `git` commands.
+**IMPORTANT**: Always use the `pr-checks` command instead of raw `gh` commands for PR status monitoring.
 
 ## Complete Workflow Example
 
@@ -237,8 +237,13 @@ All PR check scripts are located in `~/.claude/commands/pr-checks/`:
 #!/bin/bash
 # Automated PR check monitoring and fixing
 
-PR_NUMBER=$(gh pr view --json number -q .number)
-echo "🚀 Starting automated PR check monitoring for PR #$PR_NUMBER"
+PR_URL="$1"
+if [ -z "$PR_URL" ]; then
+    echo "Usage: $0 <github-pr-url>"
+    exit 1
+fi
+
+echo "🚀 Starting automated PR check monitoring for $PR_URL"
 
 MAX_ITERATIONS=10
 iteration=0
@@ -247,58 +252,44 @@ while [ $iteration -lt $MAX_ITERATIONS ]; do
     iteration=$((iteration + 1))
     echo "📍 Iteration $iteration of $MAX_ITERATIONS"
     
-    # Check current status
+    # Check current status using pr-checks command
     echo "🔍 Checking PR status..."
-    status_output=$(~/.claude/commands/pr-checks/pr-checks.sh)
-    echo "$status_output"
+    pr-checks "$PR_URL"
     
-    # Wait for pending checks
-    while [[ "$status_output" =~ "pending" || "$status_output" =~ "queued" ]]; do
-        echo "⏳ Checks still running, waiting 30 seconds..."
-        sleep 30
-        status_output=$(~/.claude/commands/pr-checks/pr-checks.sh)
-    done
+    # The pr-checks command will auto-watch and show final results
+    # Parse the output to determine if checks passed or failed
     
-    # Check if all passed
-    if [[ "$status_output" =~ "All checks passed" ]]; then
-        echo "✅ All PR checks have passed!"
-        exit 0
-    fi
+    # If checks are still running, pr-checks will wait automatically
+    # If all checks passed, we're done
+    # If checks failed, analyze the failure logs (shown by pr-checks)
     
-    # Parse failing checks
-    echo "❌ Found failing checks, analyzing..."
-    
-    # Fix based on failure type
+    # Fix based on failure type (implement specific logic here)
     fixes_made=false
     
-    # Example: Fix test failures
-    if [[ "$status_output" =~ "test.*failure" ]]; then
-        echo "🔧 Fixing test failures..."
-        ~/.claude/commands/pr-checks/check-logs.sh test
-        # Apply test fixes here
-        fixes_made=true
-    fi
-    
-    # Example: Fix lint issues
-    if [[ "$status_output" =~ "lint.*failure" ]]; then
-        echo "🔧 Fixing linting issues..."
-        just lint-fix || npm run lint:fix || echo "No auto-fix available"
-        fixes_made=true
+    # Example: Fix lint issues automatically
+    if command -v just >/dev/null 2>&1; then
+        echo "🔧 Running linting fixes..."
+        just lint-fix && fixes_made=true
+    elif npm run lint:fix >/dev/null 2>&1; then
+        echo "🔧 Running npm lint fixes..."
+        npm run lint:fix && fixes_made=true
     fi
     
     # Commit and push if fixes were made
     if [ "$fixes_made" = true ]; then
         echo "📤 Committing and pushing fixes..."
-        ~/.claude/commands/pr-checks/commit-and-push.sh "Fix: Resolve CI failures (iteration $iteration)"
-        sleep 10  # Brief pause before next check
+        git add -A
+        git commit -m "Fix: Resolve CI failures (iteration $iteration)"
+        git push
+        echo "⏳ Waiting for new checks to start..."
+        sleep 30
     else
         echo "⚠️  No automatic fixes available, manual intervention required"
-        exit 1
+        break
     fi
 done
 
-echo "❌ Maximum iterations reached, manual intervention required"
-exit 1
+echo "🏁 PR check monitoring completed"
 ```
 
 Always provide clear status updates, handle errors gracefully, and ensure the PR reaches a passing state through systematic monitoring and fixing.
