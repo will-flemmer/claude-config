@@ -44,6 +44,34 @@ This section will be populated by the task-decomposition-expert agent with detai
    - Details and considerations
    - Expected output
 
+## Existing Code Patterns & Examples
+
+This section will be populated by the task-decomposition-expert agent with links to similar existing code for reference.
+
+**AGENT INSTRUCTION**: Before searching for patterns, read codebase documentation (README.md, ARCHITECTURE.md, CONTRIBUTING.md, AI_CONTRIBUTING.md, docs/) to understand project structure, naming conventions, and folder organization. This will make your searches more targeted and effective.
+
+### Codebase Structure Notes
+- Project structure: [Key directories and their purposes learned from docs]
+- Testing location: [Where tests are typically located]
+- Naming conventions: [Patterns observed in documentation]
+- Tech stack: [Technologies and frameworks in use]
+
+### Similar Tests
+- `path/to/similar_test.spec.ts` - Example test pattern for similar functionality
+- `path/to/another_test.spec.ts` - Related test approach
+
+### Similar Implementations
+- `path/to/similar_component.ts:123` - Similar component/module implementation
+- `path/to/related_service.ts:45` - Related service pattern
+
+### Related Code Patterns
+- `path/to/pattern_example.ts` - Design pattern used in similar context
+- `path/to/helper_utils.ts` - Relevant utility functions
+
+### Documentation & References
+- Internal: Links to internal documentation or wikis
+- External: Links to relevant external resources
+
 ## Technical Considerations
 
 This section will be populated by the task-decomposition-expert agent with:

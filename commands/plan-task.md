@@ -45,14 +45,24 @@ The command uses these answers to enrich the task context before routing to the 
 
 The command enforces a single agent phase with shared context:
 
-1. **PHASE 1 - Task-Decomposition-Expert**: Analyzes task complexity, asks follow-up questions if needed, breaks down into actionable subtasks, and updates both context and task documentation files
+1. **PHASE 1 - Task-Decomposition-Expert**: Analyzes task complexity, asks follow-up questions if needed, searches codebase for similar patterns and examples, breaks down into actionable subtasks, and updates both context and task documentation files with pattern links
 
 ### Agent Coordination Flow with Context
 
 ```
 Create Session Context File →
   User Input + Clarification Q&A →
-  PHASE 1: Task-Decomposition-Expert (complexity analysis, task breakdown, implementation steps) → Update Context & Task Doc →
+  PHASE 1: Task-Decomposition-Expert
+    ↓
+    Read Codebase Documentation (README, ARCHITECTURE, etc.)
+    ↓
+    Analyze Complexity & Extract Key Terms
+    ↓
+    Search for Patterns (tests, implementations, utilities)
+    ↓
+    Generate Task Breakdown & Implementation Steps
+    ↓
+  Update Context & Task Doc with Pattern Links →
   Task Plan Files Ready
 ```
 
@@ -75,6 +85,7 @@ Contains the actual task breakdown and plan:
 - Task objective and description
 - Task breakdown and subtasks
 - Implementation steps
+- **Existing code patterns and examples** (similar tests, implementations, patterns)
 - Success criteria
 - Links to session context
 
@@ -89,8 +100,13 @@ plan-task "Implement user authentication with OAuth2 support for GitHub and Goog
 # Expected:
 # 1. Creates session context file
 # 2. Routes to task-decomposition-expert
-# 3. Generates structured task plan with subtasks
+# 3. Agent reads README.md, ARCHITECTURE.md, AI_CONTRIBUTING.md to understand project structure
+# 4. Agent searches for similar authentication tests and OAuth patterns in codebase
+# 5. Generates structured task plan with subtasks and pattern links
 # Output: Task plan created at tasks/user_authentication_oauth2_20251010_143022_12345.md
+#   - Includes links to similar test files (e.g., src/auth/auth.spec.ts)
+#   - Includes links to existing OAuth implementations
+#   - Includes links to authentication utilities
 ```
 
 ### Interactive Mode
@@ -135,8 +151,10 @@ plan-task "Add some search features"
 # 4. Create session context file with Q&A
 # 5. Create task documentation file (initial structure)
 # 6. Route to task-decomposition-expert with context file path
-# 7. Agent updates both files with analysis and breakdown
-# 8. Return file paths
+# 7. Agent reads codebase documentation (README, ARCHITECTURE, etc.)
+# 8. Agent searches codebase for similar patterns (tests, implementations, etc.)
+# 9. Agent updates both files with analysis, breakdown, and pattern links
+# 10. Return file paths
 ```
 
 ## Features
@@ -158,6 +176,16 @@ plan-task "Add some search features"
 - **Scope Assessment**: Uses task-decomposition-expert to evaluate task complexity
 - **Subtask Generation**: Breaks down complex tasks into manageable components
 - **Implementation Guidance**: Provides step-by-step implementation approach
+
+### Existing Code Pattern Discovery
+
+- **Documentation-First Approach**: Reads codebase documentation (README, ARCHITECTURE, etc.) before searching
+- **Structure-Aware Search**: Uses documentation knowledge to target appropriate directories
+- **Similar Tests**: Automatically searches for and links to similar test files as examples
+- **Similar Implementations**: Identifies related components, services, or modules
+- **Design Patterns**: Links to existing code that uses relevant design patterns
+- **Utility Functions**: Points to helper functions and utilities that may be useful
+- **Context-Aware**: Uses codebase structure understanding to find relevant examples specific to the task
 
 ### Multi-Agent Integration
 
@@ -250,8 +278,39 @@ commands/plan-task/
 
 - **Context Management**: Must read and update shared context files
 - **Task Analysis**: Must evaluate complexity and break down into subtasks
-- **Documentation**: Must update both session context and task documentation files
+- **Pattern Discovery**: Must search codebase for similar tests, implementations, and design patterns
+- **Documentation**: Must update both session context and task documentation files with pattern links
 - **Error Handling**: Robust error reporting and recovery mechanisms
+
+#### Pattern Discovery Instructions for Agent
+
+When analyzing the task, the task-decomposition-expert agent should:
+
+1. **Read Codebase Documentation First**: Before searching, read available documentation to understand structure
+   - Check for: `README.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md`, `AI_CONTRIBUTING.md`, `docs/` folder
+   - Look for: Project structure, naming conventions, tech stack, folder organization
+   - Understand: Where tests are located, where implementations live, common patterns used
+   - This context will make searches more targeted and effective
+
+2. **Identify Key Terms**: Extract main technical concepts from the task (e.g., "authentication", "OAuth2", "tests")
+
+3. **Search for Similar Tests**: Use Grep/Glob to find test files with similar patterns
+   - Example: Search for `*.spec.ts` or `*.test.ts` files containing related keywords
+   - Use codebase structure knowledge to target correct directories
+   - Include file paths with line numbers for specific examples
+
+4. **Search for Similar Implementations**: Find components, services, or modules with related functionality
+   - Example: Search for files containing similar class names, function names, or patterns
+   - Use documentation knowledge to search in appropriate directories
+
+5. **Identify Design Patterns**: Look for existing code that uses relevant architectural patterns
+   - Example: Find similar factories, builders, strategies, etc.
+   - Reference architecture docs to understand pattern locations
+
+6. **Find Utility Functions**: Locate helper functions that might be reused
+   - Check common utility/helper directories identified in documentation
+
+7. **Populate Pattern Section**: Add all discovered patterns to the "Existing Code Patterns & Examples" section in the task documentation file
 
 ## Clarification Question Logic
 
