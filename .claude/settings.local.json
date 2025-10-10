@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(/Users/williamflemmer/**)",
+      "WebSearch",
+      "Bash(ln:*)",
+      "Read(//Users/williamflemmer/.claude/commands/**)",
+      "Bash(cat:*)",
+      "Bash(tree:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

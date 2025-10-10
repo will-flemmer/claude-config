@@ -1,0 +1,186 @@
+{
+  "version": "1.0.0",
+  "command_metadata": {
+    "name": "plan-task",
+    "description": "Intelligent task planning with agent collaboration and context sharing",
+    "category": "task-management",
+    "author": "Claude Code",
+    "created": "2025-10-10"
+  },
+  "agent_settings": {
+    "task_decomposition_expert": {
+      "timeout": 45,
+      "retry_attempts": 2,
+      "required": true,
+      "role": "Task complexity analysis and subtask breakdown"
+    }
+  },
+  "clarification_settings": {
+    "enabled": true,
+    "auto_detect_vague": true,
+    "triggers": {
+      "min_description_length": 20,
+      "vague_words": ["some", "few", "maybe", "probably", "might", "could", "perhaps", "possibly"],
+      "missing_technical_terms": true
+    },
+    "question_categories": {
+      "scope": {
+        "priority": 1,
+        "questions": [
+          "What are the specific boundaries and deliverables of this task?",
+          "What should be included in scope, and what should be excluded?",
+          "Are there any specific components or features that must be included?"
+        ]
+      },
+      "dependencies": {
+        "priority": 2,
+        "questions": [
+          "What existing code, systems, or components does this task interact with?",
+          "Are there any external dependencies (APIs, services, libraries)?",
+          "What needs to be completed before this task can start?"
+        ]
+      },
+      "technical": {
+        "priority": 3,
+        "questions": [
+          "Are there specific technologies, frameworks, or patterns to use?",
+          "What are the technical constraints or requirements?",
+          "Are there any performance, scalability, or security requirements?"
+        ]
+      },
+      "success": {
+        "priority": 4,
+        "questions": [
+          "How will we know this task is complete?",
+          "What are the measurable success criteria?",
+          "What does 'done' look like for this task?"
+        ]
+      },
+      "priority": {
+        "priority": 5,
+        "questions": [
+          "What's the timeline or urgency for this task?",
+          "Is this blocking any other work?",
+          "What's the relative importance compared to other work?"
+        ]
+      }
+    },
+    "max_questions": 5,
+    "question_timeout": 300
+  },
+  "session_settings": {
+    "id_pattern": "plan_{timestamp}_{random}",
+    "timestamp_format": "%Y%m%d_%H%M%S",
+    "random_range": [10000, 99999],
+    "context_file_pattern": "tasks/session_context_{session_id}.md",
+    "task_doc_pattern": "tasks/{descriptive_name}_{session_id}.md"
+  },
+  "file_generation": {
+    "use_absolute_paths": true,
+    "create_directories": true,
+    "overwrite_existing": false,
+    "backup_existing": true,
+    "templates": {
+      "session_context": "~/.claude/commands/plan-task/templates/session_context.md",
+      "task_doc": "~/.claude/commands/plan-task/templates/task_doc.md"
+    }
+  },
+  "task_complexity_thresholds": {
+    "simple": {
+      "max_subtasks": 3,
+      "max_effort_days": 2,
+      "characteristics": ["Single component", "Clear requirements", "No dependencies"]
+    },
+    "moderate": {
+      "max_subtasks": 7,
+      "max_effort_days": 5,
+      "characteristics": ["Multiple components", "Some dependencies", "Moderate complexity"]
+    },
+    "complex": {
+      "max_subtasks": 15,
+      "max_effort_days": 15,
+      "characteristics": ["Many components", "Multiple dependencies", "High complexity"]
+    },
+    "epic": {
+      "max_subtasks": 999,
+      "max_effort_days": 90,
+      "characteristics": ["Large initiative", "Cross-team", "Long timeline"]
+    }
+  },
+  "validation_rules": {
+    "task_description": {
+      "min_length": 10,
+      "max_length": 5000,
+      "required": true,
+      "allow_empty": false
+    },
+    "clarification_responses": {
+      "min_length": 5,
+      "max_length": 1000,
+      "allow_skip": true
+    },
+    "session_id": {
+      "pattern": "^plan_[0-9]{8}_[0-9]{6}_[0-9]{4,5}$",
+      "required": true
+    }
+  },
+  "output_settings": {
+    "default_format": "text",
+    "show_progress": true,
+    "show_file_paths": true,
+    "use_colors": true,
+    "verbose_mode": false
+  },
+  "integration_settings": {
+    "callable_from_commands": true,
+    "output_session_id": true,
+    "output_file_paths": true,
+    "enable_piping": true
+  },
+  "agent_prompt_templates": {
+    "task_decomposition_expert": {
+      "prefix": "Context file: {context_file_path}.",
+      "instructions": [
+        "Read the session context file to understand the full task and clarifications",
+        "Analyze the task complexity and identify components",
+        "Break down the task into actionable subtasks",
+        "Provide implementation steps and technical guidance",
+        "Update BOTH the session context file and task documentation file",
+        "Ensure all sections of the task documentation template are populated"
+      ],
+      "output_requirements": [
+        "Updated session context with task analysis",
+        "Complete task documentation with subtask breakdown",
+        "Implementation steps and technical considerations",
+        "Success criteria and effort estimates"
+      ]
+    }
+  },
+  "error_handling": {
+    "retry_on_agent_failure": true,
+    "max_retries": 2,
+    "retry_delay_seconds": 2,
+    "fallback_to_simple_plan": false,
+    "show_error_details": true
+  },
+  "feature_flags": {
+    "enable_clarification_questions": true,
+    "enable_auto_vague_detection": true,
+    "enable_agent_routing": true,
+    "enable_context_sharing": true,
+    "enable_interactive_mode": true,
+    "enable_session_tracking": true,
+    "enable_progress_indicators": true
+  },
+  "performance_settings": {
+    "max_processing_time": 60,
+    "agent_timeout": 45,
+    "file_write_timeout": 5,
+    "concurrent_agents": 1
+  },
+  "documentation": {
+    "examples_path": "~/.claude/commands/plan-task.md",
+    "templates_path": "~/.claude/commands/plan-task/templates/",
+    "support_contact": "Claude Code Documentation"
+  }
+}
