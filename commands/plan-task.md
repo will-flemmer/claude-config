@@ -1,8 +1,8 @@
 # plan-task
 
-Intelligently plan and decompose user-provided tasks into structured, actionable subtasks with comprehensive context sharing for multi-agent workflows.
+Intelligently plan and decompose user-provided tasks into structured, actionable subtasks with comprehensive context sharing.
 
-**IMPORTANT**: This command creates structured task plans with session context files to enable coordinated multi-agent execution. Always use the task-decomposition-expert agent for complex task breakdown.
+**IMPORTANT**: This command is executed directly by the main Claude agent (not routed to a specialized agent). It creates structured task plans with session context files for implementation tracking.
 
 **VERY IMPORTANT**: The templates and configuration can be found in the `~/.claude/commands/plan-task` folder.
 
@@ -12,6 +12,63 @@ Intelligently plan and decompose user-provided tasks into structured, actionable
 plan-task [OPTIONS] <task_description>
 plan-task [OPTIONS] --interactive
 ```
+
+## Parallel Execution Strategy
+
+**CRITICAL PERFORMANCE OPTIMIZATION**: This command is designed for maximum parallelization to reduce execution time.
+
+### Parallel Operations
+
+Execute the following operations in parallel:
+
+1. **Documentation Reading** (Parallel)
+   - Send ONE message with MULTIPLE Read tool calls
+   - Read simultaneously: README.md, ARCHITECTURE.md, CONTRIBUTING.md, AI_CONTRIBUTING.md, package.json
+   - Time savings: 5 sequential reads (~15s) → 1 parallel batch (~3s) = **80% faster**
+
+2. **Pattern Searching** (Parallel)
+   - Send ONE message with MULTIPLE Grep/Glob tool calls
+   - Search simultaneously for:
+     * Similar test files (*.spec.ts, *.test.ts)
+     * Similar implementations (components, services)
+     * Design patterns (factories, builders, strategies)
+     * Utility functions (helpers, utils)
+     * Configuration files
+   - Time savings: 5 sequential searches (~25s) → 1 parallel batch (~5s) = **80% faster**
+
+### Example: Parallel Tool Usage
+
+```typescript
+// ❌ WRONG: Sequential execution (slow)
+Read README.md
+// wait for result...
+Read ARCHITECTURE.md
+// wait for result...
+Grep for tests
+// wait for result...
+Grep for implementations
+// Total time: ~40 seconds
+
+// ✅ CORRECT: Parallel execution (fast)
+// Single message with multiple tool calls:
+Read README.md
+Read ARCHITECTURE.md
+Read CONTRIBUTING.md
+Read AI_CONTRIBUTING.md
+Grep pattern="test" type="ts"
+Grep pattern="implementation" type="ts"
+Grep pattern="factory" type="ts"
+Glob pattern="**/*.spec.ts"
+// Total time: ~5 seconds (8x faster!)
+```
+
+### Performance Impact
+
+| Operation Type | Sequential | Parallel | Speedup |
+|---------------|-----------|----------|---------|
+| Read 5 docs | ~15s | ~3s | 5x faster |
+| Search 5 patterns | ~25s | ~5s | 5x faster |
+| **Total discovery** | **~40s** | **~8s** | **5x faster** |
 
 ### Pre-Planning Clarification
 
@@ -23,7 +80,7 @@ Before creating the task plan, the command will ask intelligent clarifying quest
 4. **Success Criteria**: How will we know this task is complete? What are the measurable outcomes?
 5. **Priority/Urgency**: What's the timeline, importance, or blocking factors?
 
-The command uses these answers to enrich the task context before routing to the task-decomposition-expert agent.
+The command uses these answers to enrich the task context before starting the analysis.
 
 ## Options
 
@@ -31,54 +88,67 @@ The command uses these answers to enrich the task context before routing to the 
 - `-i, --interactive`: Interactive mode for complex task planning with detailed requirements gathering
 - `--session-id <id>`: Use a specific session ID (default: auto-generated)
 
-## Multi-Agent Workflow with Context Sharing
+## Execution Workflow
 
-**MANDATORY**: This command MUST create a session context file and route task decomposition through the specialized task-decomposition-expert agent. Never attempt task breakdown directly.
+**CRITICAL**: This command is executed directly by Claude. The workflow:
 
 ### Context File Creation
 
-**CRITICAL**: Before starting the agent workflow:
+Before starting task analysis:
 1. Generate unique session ID using pattern: `plan_$(date +%Y%m%d_%H%M%S)_$RANDOM`
 2. Create session context file at: `tasks/session_context_<session_id>.md`
 3. Create task documentation file at: `tasks/<descriptive-name>_<session_id>.md`
-4. Pass context file path to ALL agents in their prompts
 
-The command enforces a single agent phase with shared context:
+### Task Analysis Process
 
-1. **PHASE 1 - Task-Decomposition-Expert**: Analyzes task complexity, asks follow-up questions if needed, searches codebase for similar patterns and examples, breaks down into actionable subtasks, and updates both context and task documentation files with pattern links
+Claude will analyze the task directly by:
+1. Asking follow-up clarification questions if needed
+2. Reading codebase documentation IN PARALLEL (README, ARCHITECTURE, etc.)
+3. Searching codebase IN PARALLEL for similar patterns and examples
+4. Breaking down into actionable subtasks
+5. Updating both context and task documentation files with pattern links
 
-### Agent Coordination Flow with Context
+### Execution Flow with Parallel Operations
 
 ```
-Create Session Context File →
-  User Input + Clarification Q&A →
-  PHASE 1: Task-Decomposition-Expert
-    ↓
-    Read Codebase Documentation (README, ARCHITECTURE, etc.)
-    ↓
-    Analyze Complexity & Extract Key Terms
-    ↓
-    Search for Patterns (tests, implementations, utilities)
-    ↓
-    Generate Task Breakdown & Implementation Steps
-    ↓
-  Update Context & Task Doc with Pattern Links →
-  Task Plan Files Ready
+User Input + Clarification Q&A
+  ↓
+Create Session Context File
+  ↓
+Read Codebase Documentation IN PARALLEL ⚡
+├─→ README.md
+├─→ ARCHITECTURE.md
+├─→ AI_CONTRIBUTING.md
+└─→ Other docs
+  ↓
+Analyze Complexity & Extract Key Terms
+  ↓
+Search for Patterns IN PARALLEL ⚡
+├─→ Similar tests (*.spec.ts, *.test.ts)
+├─→ Similar implementations
+├─→ Design patterns
+└─→ Utility functions
+  ↓
+Generate Task Breakdown & Implementation Steps
+  ↓
+Update Context & Task Doc with Pattern Links
+  ↓
+Task Plan Files Ready ✅
 ```
 
-**CRITICAL**: The task-decomposition-expert agent must complete its analysis and update both the session context file and task documentation file before proceeding.
+**Note**: ⚡ indicates parallel execution for maximum performance
 
 ## Task File Structure
 
 The command generates two interconnected files:
 
 ### 1. Session Context File (`tasks/session_context_<session_id>.md`)
-Tracks the workflow state and agent activity:
+Tracks the workflow state and execution progress:
 - Objective and workflow type
 - Current state
 - Clarifications and Q&A
 - Discovered context sections
-- Agent activity log
+- Execution activity log
 
 ### 2. Task Documentation File (`tasks/<descriptive-name>_<session_id>.md`)
 Contains the actual task breakdown and plan:
@@ -99,10 +169,9 @@ plan-task "Implement user authentication with OAuth2 support for GitHub and Goog
 
 # Expected:
 # 1. Creates session context file
-# 2. Routes to task-decomposition-expert
-# 3. Agent reads README.md, ARCHITECTURE.md, AI_CONTRIBUTING.md to understand project structure
-# 4. Agent searches for similar authentication tests and OAuth patterns in codebase
-# 5. Generates structured task plan with subtasks and pattern links
+# 2. Reads README.md, ARCHITECTURE.md, AI_CONTRIBUTING.md IN PARALLEL to understand project structure
+# 3. Searches IN PARALLEL for similar authentication tests and OAuth patterns in codebase
+# 4. Generates structured task plan with subtasks and pattern links
 # Output: Task plan created at tasks/user_authentication_oauth2_20251010_143022_12345.md
 #   - Includes links to similar test files (e.g., src/auth/auth.spec.ts)
 #   - Includes links to existing OAuth implementations
@@ -118,7 +187,7 @@ plan-task --interactive "Build a notification system"
 # Expected:
 # - Asks clarifying questions about scope, dependencies, technical constraints
 # - Creates enriched session context with Q&A
-# - Routes to task-decomposition-expert with full context
+# - Reads documentation and searches patterns IN PARALLEL
 # - Generates comprehensive task breakdown
 ```
 
@@ -136,25 +205,27 @@ plan-task "Add some search features"
 #   * What content should be searchable?
 #   * Any performance or scalability requirements?
 # - Creates enriched context with answers
-# - Routes to task-decomposition-expert
+# - Executes documentation reading and pattern searches IN PARALLEL
 # - Generates detailed task plan
 ```
 
-### Agent Workflow (Internal)
+### Internal Execution Workflow
 
 ```bash
-# The command internally uses this workflow:
+# The command uses this workflow:
 
 # 1. Analyze task description for clarity
 # 2. Ask clarifying questions if needed
 # 3. Generate unique session ID
 # 4. Create session context file with Q&A
 # 5. Create task documentation file (initial structure)
-# 6. Route to task-decomposition-expert with context file path
-# 7. Agent reads codebase documentation (README, ARCHITECTURE, etc.)
-# 8. Agent searches codebase for similar patterns (tests, implementations, etc.)
-# 9. Agent updates both files with analysis, breakdown, and pattern links
-# 10. Return file paths
+# 6. Read codebase documentation IN PARALLEL (README, ARCHITECTURE, etc.)
+#    - Uses multiple Read tool calls in single message for parallel execution
+# 7. Search codebase for similar patterns IN PARALLEL
+#    - Uses multiple Grep/Glob calls in single message
+#    - Searches for tests, implementations, utilities simultaneously
+# 8. Update both files with analysis, breakdown, and pattern links
+# 9. Return file paths
 ```
 
 ## Features
@@ -163,17 +234,17 @@ plan-task "Add some search features"
 
 - **Vagueness Detection**: Automatically identifies unclear task descriptions
 - **Contextual Questions**: Asks relevant questions based on missing information
-- **Enriched Context**: Incorporates answers into session context for agent use
+- **Enriched Context**: Incorporates answers into session context for analysis
 
 ### Automatic Session Management
 
 - **Unique Session IDs**: Generates collision-free identifiers using timestamp and random component
-- **Context Tracking**: Links all related files and agent activities
+- **Context Tracking**: Links all related files and activities
 - **Workflow State**: Maintains current state and progress through workflow phases
 
 ### Task Complexity Analysis
 
-- **Scope Assessment**: Uses task-decomposition-expert to evaluate task complexity
+- **Scope Assessment**: Evaluates task complexity and effort estimates
 - **Subtask Generation**: Breaks down complex tasks into manageable components
 - **Implementation Guidance**: Provides step-by-step implementation approach
 
@@ -186,12 +257,6 @@ plan-task "Add some search features"
 - **Design Patterns**: Links to existing code that uses relevant design patterns
 - **Utility Functions**: Points to helper functions and utilities that may be useful
 - **Context-Aware**: Uses codebase structure understanding to find relevant examples specific to the task
-
-### Multi-Agent Integration
-
-- **Orchestrated Workflow**: Seamless routing to task-decomposition-expert agent
-- **Context Sharing**: Agents read and update shared context files
-- **Extensible Design**: Other commands can use generated plans as input
 
 ## Integration with Other Commands
 
@@ -234,7 +299,7 @@ Task Plan: /Users/williamflemmer/Documents/claude-config/tasks/user_authenticati
 ### System Dependencies
 
 - **Git**: For repository detection and working directory context
-- **jq**: JSON processing for configuration and agent communication
+- **jq**: JSON processing for configuration
 - **date**: For timestamp generation in session IDs
 
 ### Permissions
@@ -253,7 +318,7 @@ Task Plan: /Users/williamflemmer/Documents/claude-config/tasks/user_authenticati
 - **Empty task description**: Prompts for meaningful task description
 - **Missing tasks/ directory**: Creates directory automatically
 - **File write failures**: Clear error messages with permission checks
-- **Agent failures**: Graceful error reporting with retry suggestions
+- **Execution failures**: Graceful error reporting with retry suggestions
 
 ## Implementation
 
@@ -268,49 +333,6 @@ commands/plan-task/
 └── config.json                 # Configuration for clarification questions and templates
 ```
 
-### Agent Integration
-
-#### Required Agents
-
-- **task-decomposition-expert**: Task complexity analysis, requirement structuring, subtask breakdown, implementation planning
-
-#### Agent Capabilities Required
-
-- **Context Management**: Must read and update shared context files
-- **Task Analysis**: Must evaluate complexity and break down into subtasks
-- **Pattern Discovery**: Must search codebase for similar tests, implementations, and design patterns
-- **Documentation**: Must update both session context and task documentation files with pattern links
-- **Error Handling**: Robust error reporting and recovery mechanisms
-
-#### Pattern Discovery Instructions for Agent
-
-When analyzing the task, the task-decomposition-expert agent should:
-
-1. **Read Codebase Documentation First**: Before searching, read available documentation to understand structure
-   - Check for: `README.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md`, `AI_CONTRIBUTING.md`, `docs/` folder
-   - Look for: Project structure, naming conventions, tech stack, folder organization
-   - Understand: Where tests are located, where implementations live, common patterns used
-   - This context will make searches more targeted and effective
-
-2. **Identify Key Terms**: Extract main technical concepts from the task (e.g., "authentication", "OAuth2", "tests")
-
-3. **Search for Similar Tests**: Use Grep/Glob to find test files with similar patterns
-   - Example: Search for `*.spec.ts` or `*.test.ts` files containing related keywords
-   - Use codebase structure knowledge to target correct directories
-   - Include file paths with line numbers for specific examples
-
-4. **Search for Similar Implementations**: Find components, services, or modules with related functionality
-   - Example: Search for files containing similar class names, function names, or patterns
-   - Use documentation knowledge to search in appropriate directories
-
-5. **Identify Design Patterns**: Look for existing code that uses relevant architectural patterns
-   - Example: Find similar factories, builders, strategies, etc.
-   - Reference architecture docs to understand pattern locations
-
-6. **Find Utility Functions**: Locate helper functions that might be reused
-   - Check common utility/helper directories identified in documentation
-
-7. **Populate Pattern Section**: Add all discovered patterns to the "Existing Code Patterns & Examples" section in the task documentation file
 
 ## Clarification Question Logic
 
@@ -363,34 +385,28 @@ rm /Users/williamflemmer/Documents/claude-config/tasks/session_context_<old_id>.
 
 - **Structured format**: Session context and task docs follow consistent templates
 - **Absolute paths**: All file references use full absolute paths
-- **Agent traceability**: Complete log of agent activities in session context
+- **Activity tracking**: Complete log of analysis steps in session context
 - **Actionable subtasks**: Each subtask is concrete and implementable
 
-## Agent-First Execution Requirements
+## Execution Requirements
 
-**MANDATORY**: This command MUST follow Agent-First Task Execution guidelines from CLAUDE.md:
+**MANDATORY**: This command MUST follow these execution guidelines:
 
-### Required Agent Routing
+### Required Steps
 
-1. **NEVER perform task decomposition directly** - always route through task-decomposition-expert agent
-2. **Context file creation** - always create session context file before agent invocation
-3. **Context sharing** - agent reads and updates the shared context file
-4. **Agent specialization** - task-decomposition-expert handles all complexity analysis and breakdown
+1. **Context file creation** - always create session context file before starting analysis
+2. **Parallel operations** - always use parallel tool calls for independent operations (documentation reading, pattern searches)
+3. **Context updates** - update both session context and task documentation files with findings
+4. **Pattern discovery** - include links to similar code patterns found in the codebase
 
-### Compliance Verification
+### Compliance Checklist
 
-Before using this command, verify:
+When executing this command:
 - [ ] Session context file is created first
 - [ ] Task documentation file is initialized
-- [ ] task-decomposition-expert agent is invoked with context file path in prompt
-- [ ] Agent updates both session context and task documentation
-- [ ] No direct task breakdown bypasses the agent workflow
+- [ ] Documentation files are read IN PARALLEL (single message, multiple Read calls)
+- [ ] Pattern searches are executed IN PARALLEL (single message, multiple Grep/Glob calls)
+- [ ] Both session context and task documentation files are updated with findings
+- [ ] Existing code patterns and examples are included in task documentation
 
-### Enforcement Mechanisms
-
-- Command documentation mandates agent usage at every step
-- Examples show only proper Task() tool routing to task-decomposition-expert
-- Interactive mode requires agent phase completion
-- All usage patterns demonstrate proper context sharing with absolute file paths
-
-This command exemplifies best practices in Agent-First task planning while delivering practical value for breaking down complex work into manageable, actionable components.
+This command delivers practical value for breaking down complex work into manageable, actionable components with maximum performance through parallel execution.

@@ -1,9 +1,5 @@
 # Agent-First Development Guidelines
 
-## Core Principle: Agent-First Task Execution
-
-**MANDATORY**: ALWAYS use specialized agents via Task tool for ALL implementation, analysis, or specialized work. Never attempt complex tasks directly.
-
 ### Agent Routing
 
 | Task Type | Agent | Context Required |
@@ -12,7 +8,7 @@
 | Code review/quality | pr-reviewer | Yes* |
 | PR management | pr-checker | Yes* |
 | Issue creation | issue-writer | Yes* |
-| Task planning | task-decomposition-expert | Yes* |
+| Task planning (plan-task) | main Claude agent | Yes* |
 | Command creation | command-writer | No |
 | Prompt optimization | prompt-engineer | Yes* |
 
@@ -51,17 +47,17 @@ For context-sharing agents:
 
 ### Examples
 ```bash
-# Multi-agent workflow with context
+# Example 1: Task planning (executed by main agent, no routing)
+# Use the /plan-task command which is executed directly by main agent
+/plan-task "Add user authentication with OAuth2"
+
+# Example 2: Multi-agent workflow with context (after planning is complete)
 session_id="issue_$(date +%Y%m%d_%H%M%S)_$RANDOM"
 context_file="tasks/session_context_${session_id}.md"
 
-# MANDATORY: Always start prompt with context file path
-Task(subagent_type="task-decomposition-expert", 
-     prompt="Context file: ${context_file}. Analyze the following task for complexity and break it down into actionable components.")
-
-# Next agent also gets context file path
-Task(subagent_type="issue-writer", 
-     prompt="Context file: ${context_file}. Create GitHub issue based on task analysis from previous agent.")
+# Create GitHub issue from planning document
+Task(subagent_type="issue-writer",
+     prompt="Context file: ${context_file}. Create GitHub issue based on task plan from planning phase.")
 ```
 
 See `context-sharing-guide.md` for implementation details.
