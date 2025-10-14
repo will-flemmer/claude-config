@@ -1,10 +1,21 @@
 # plan-task
 
-Intelligently plan and decompose user-provided tasks into structured, actionable subtasks with comprehensive context sharing.
+**EXECUTION**: Main Claude agent (no routing)
+**PURPOSE**: Analyze tasks and create actionable implementation plans
 
-**IMPORTANT**: This command is executed directly by the main Claude agent (not routed to a specialized agent). It creates structured task plans with session context files for implementation tracking.
+## What This Does
+1. **Analyzes** requirements and existing codebase
+2. **Breaks down** work into 3-7 subtasks with complexity estimates
+3. **Identifies** dependencies and execution order
+4. **Provides** implementation guidance and risk areas
 
-**VERY IMPORTANT**: The templates and configuration can be found in the `~/.claude/commands/plan-task` folder.
+## Key Features
+- **Parallel execution** for 5-8x faster codebase analysis
+- **Context integration** for multi-agent workflows
+- **Complexity scoring** (Simple/Medium/Complex)
+- **Dependency mapping** for optimal execution sequencing
+
+**Configuration & Templates**: `~/.claude/commands/plan-task/`
 
 ## Usage
 
@@ -15,72 +26,49 @@ plan-task [OPTIONS] --interactive
 
 ## Parallel Execution Strategy
 
-**CRITICAL PERFORMANCE OPTIMIZATION**: This command is designed for maximum parallelization to reduce execution time.
+**CRITICAL**: Use parallel tool calls for 5-8x performance improvement.
 
-### Parallel Operations
+### Pattern
+Execute multiple tool calls in a single message for independent operations.
 
-Execute the following operations in parallel:
+### When to Use
+- **File discovery + reading**: Find files, then read relevant ones
+- **Multi-file analysis**: Read related files simultaneously
+- **Independent operations**: Any operations without dependencies
 
-1. **Documentation Reading** (Parallel)
-   - Send ONE message with MULTIPLE Read tool calls
-   - Read simultaneously: README.md, ARCHITECTURE.md, CONTRIBUTING.md, AI_CONTRIBUTING.md, package.json
-   - Time savings: 5 sequential reads (~15s) → 1 parallel batch (~3s) = **80% faster**
-
-2. **Pattern Searching** (Parallel)
-   - Send ONE message with MULTIPLE Grep/Glob tool calls
-   - Search simultaneously for:
-     * Similar test files (*.spec.ts, *.test.ts)
-     * Similar implementations (components, services)
-     * Design patterns (factories, builders, strategies)
-     * Utility functions (helpers, utils)
-     * Configuration files
-   - Time savings: 5 sequential searches (~25s) → 1 parallel batch (~5s) = **80% faster**
-
-### Example: Parallel Tool Usage
-
-```typescript
-// ❌ WRONG: Sequential execution (slow)
-Read README.md
-// wait for result...
-Read ARCHITECTURE.md
-// wait for result...
-Grep for tests
-// wait for result...
-Grep for implementations
-// Total time: ~40 seconds
-
-// ✅ CORRECT: Parallel execution (fast)
-// Single message with multiple tool calls:
-Read README.md
-Read ARCHITECTURE.md
-Read CONTRIBUTING.md
-Read AI_CONTRIBUTING.md
-Grep pattern="test" type="ts"
-Grep pattern="implementation" type="ts"
-Grep pattern="factory" type="ts"
-Glob pattern="**/*.spec.ts"
-// Total time: ~5 seconds (8x faster!)
+### Performance Example
+```
+Sequential:  5 files × 8 sec = 40 seconds
+Parallel:    5 files in 1 call = 8 seconds (5x faster)
 ```
 
-### Performance Impact
+### Anti-Pattern (DO NOT DO)
+Execute operations sequentially when they could be parallelized.
 
-| Operation Type | Sequential | Parallel | Speedup |
-|---------------|-----------|----------|---------|
-| Read 5 docs | ~15s | ~3s | 5x faster |
-| Search 5 patterns | ~25s | ~5s | 5x faster |
-| **Total discovery** | **~40s** | **~8s** | **5x faster** |
+## Clarification Questions
 
-### Pre-Planning Clarification
+**CRITICAL**: Always consider asking clarifying questions before starting analysis. Better to ask upfront than make wrong assumptions.
 
-Before creating the task plan, the command will ask intelligent clarifying questions when the task description is vague or incomplete (e.g., descriptions under 20 words, missing key technical terms, or containing uncertain words like "maybe", "probably", "some", "few"):
+**When to Ask** (ask if ANY of these apply):
+- Task description < 25 words
+- Missing technical constraints or requirements
+- Unclear boundaries or scope
+- No mention of testing or quality requirements
+- Integration points not specified
+- Performance/scalability needs unclear
+- Success criteria not defined
+- ANY ambiguity about implementation approach
 
-1. **Scope**: What are the boundaries and specific deliverables of this task?
-2. **Dependencies**: What existing code, systems, or components does this interact with?
-3. **Technical Constraints**: Are there specific technologies, patterns, frameworks, or limitations to follow?
-4. **Success Criteria**: How will we know this task is complete? What are the measurable outcomes?
-5. **Priority/Urgency**: What's the timeline, importance, or blocking factors?
+**Question Categories** (ask 3-5 targeted questions):
+1. **Objective**: What problem are we solving? What's the desired outcome?
+2. **Scope**: What's included/excluded? What's the boundary?
+3. **Constraints**: Required technologies? Performance needs? Integration points?
+4. **Quality**: Testing requirements? Documentation needs?
+5. **Success**: How do we know when it's done? What are acceptance criteria?
 
-The command uses these answers to enrich the task context before starting the analysis.
+**Default Behavior**: When in doubt, ASK. It's always better to clarify than to plan incorrectly.
+
+The answers enrich the task context and ensure accurate planning.
 
 ## Options
 
@@ -88,55 +76,74 @@ The command uses these answers to enrich the task context before starting the an
 - `-i, --interactive`: Interactive mode for complex task planning with detailed requirements gathering
 - `--session-id <id>`: Use a specific session ID (default: auto-generated)
 
+## Context Management
+
+**MANDATORY**: Always create session context files for tracking.
+
+**Context File Creation**:
+1. Generate unique session ID: `plan_$(date +%Y%m%d_%H%M%S)_$RANDOM`
+2. Create `tasks/session_context_<session_id>.md` immediately
+3. Create `tasks/<descriptive-name>_<session_id>.md` for task plan
+
+**Context Updates Required**:
+1. **After codebase discovery**: Add discovered architecture to Technical Decisions
+2. **After complexity analysis**: Update with findings and patterns
+3. **Before completion**: Final summary with:
+   - Current State: "Planning completed - [brief summary]"
+   - Technical Decisions: Architecture choices, patterns
+   - Activity Log: Complete analysis steps
+
 ## Execution Workflow
 
-**CRITICAL**: This command is executed directly by Claude. The workflow:
+### 1. Context & Requirements Analysis
+- **Create session context files** (session_context and task_doc)
+- **Analyze task**: Extract objective, constraints, technologies
+- **Ask clarifying questions**: 3-5 targeted questions (see Clarification Questions section)
 
-### Context File Creation
-
-Before starting task analysis:
-1. Generate unique session ID using pattern: `plan_$(date +%Y%m%d_%H%M%S)_$RANDOM`
-2. Create session context file at: `tasks/session_context_<session_id>.md`
-3. Create task documentation file at: `tasks/<descriptive-name>_<session_id>.md`
-
-### Task Analysis Process
-
-Claude will analyze the task directly by:
-1. Asking follow-up clarification questions if needed
-2. Reading codebase documentation IN PARALLEL (README, ARCHITECTURE, etc.)
-3. Searching codebase IN PARALLEL for similar patterns and examples
-4. Breaking down into actionable subtasks
-5. Updating both context and task documentation files with pattern links
-
-### Execution Flow with Parallel Operations
-
-```
-User Input + Clarification Q&A
-  ↓
-Create Session Context File
-  ↓
-Read Codebase Documentation IN PARALLEL ⚡
-├─→ README.md
-├─→ ARCHITECTURE.md
-├─→ AI_CONTRIBUTING.md
-└─→ Other docs
-  ↓
-Analyze Complexity & Extract Key Terms
-  ↓
-Search for Patterns IN PARALLEL ⚡
-├─→ Similar tests (*.spec.ts, *.test.ts)
-├─→ Similar implementations
-├─→ Design patterns
-└─→ Utility functions
-  ↓
-Generate Task Breakdown & Implementation Steps
-  ↓
-Update Context & Task Doc with Pattern Links
-  ↓
-Task Plan Files Ready ✅
+### 2. Codebase Discovery (Use Parallel Execution)
+**Find relevant files**:
+```bash
+find . -type f -name "*.ts" -o -name "*.js" | head -20
+grep -r "pattern" --include="*.ts"
 ```
 
-**Note**: ⚡ indicates parallel execution for maximum performance
+**Read key files in parallel** (single message with multiple Read calls):
+- README.md, ARCHITECTURE.md, CONTRIBUTING.md, package.json
+
+**Update context**: Add discovered architecture to `Technical Decisions`
+
+### 3. Complexity Analysis & Task Breakdown
+**Assess complexity** (Simple/Medium/Complex):
+- Simple: Single file, < 50 LOC, no dependencies
+- Medium: Multiple files, < 200 LOC, few dependencies
+- Complex: Many files, > 200 LOC, or intricate logic
+
+**Create tasks**: 3-7 subtasks, each with:
+- Clear objective
+- Acceptance criteria
+- Estimated complexity
+- Dependencies (if any)
+
+### 4. Dependencies & Execution Order
+**Identify**:
+- Which tasks must complete first
+- Which can run in parallel
+- External dependencies (APIs, libraries)
+
+**Recommend**: Optimal execution sequence
+
+### 5. Implementation Notes & Context Update
+**Provide**:
+- Architecture decisions and rationale
+- Testing strategy
+- Risk areas requiring attention
+
+**Update context before completion**:
+```markdown
+Current State: Planning completed - [brief summary]
+Technical Decisions: [key architectural choices]
+Activity Log: [add entry with findings]
+```
 
 ## Task File Structure
 
@@ -208,55 +215,6 @@ plan-task "Add some search features"
 # - Executes documentation reading and pattern searches IN PARALLEL
 # - Generates detailed task plan
 ```
-
-### Internal Execution Workflow
-
-```bash
-# The command uses this workflow:
-
-# 1. Analyze task description for clarity
-# 2. Ask clarifying questions if needed
-# 3. Generate unique session ID
-# 4. Create session context file with Q&A
-# 5. Create task documentation file (initial structure)
-# 6. Read codebase documentation IN PARALLEL (README, ARCHITECTURE, etc.)
-#    - Uses multiple Read tool calls in single message for parallel execution
-# 7. Search codebase for similar patterns IN PARALLEL
-#    - Uses multiple Grep/Glob calls in single message
-#    - Searches for tests, implementations, utilities simultaneously
-# 8. Update both files with analysis, breakdown, and pattern links
-# 9. Return file paths
-```
-
-## Features
-
-### Intelligent Clarification
-
-- **Vagueness Detection**: Automatically identifies unclear task descriptions
-- **Contextual Questions**: Asks relevant questions based on missing information
-- **Enriched Context**: Incorporates answers into session context for analysis
-
-### Automatic Session Management
-
-- **Unique Session IDs**: Generates collision-free identifiers using timestamp and random component
-- **Context Tracking**: Links all related files and activities
-- **Workflow State**: Maintains current state and progress through workflow phases
-
-### Task Complexity Analysis
-
-- **Scope Assessment**: Evaluates task complexity and effort estimates
-- **Subtask Generation**: Breaks down complex tasks into manageable components
-- **Implementation Guidance**: Provides step-by-step implementation approach
-
-### Existing Code Pattern Discovery
-
-- **Documentation-First Approach**: Reads codebase documentation (README, ARCHITECTURE, etc.) before searching
-- **Structure-Aware Search**: Uses documentation knowledge to target appropriate directories
-- **Similar Tests**: Automatically searches for and links to similar test files as examples
-- **Similar Implementations**: Identifies related components, services, or modules
-- **Design Patterns**: Links to existing code that uses relevant design patterns
-- **Utility Functions**: Points to helper functions and utilities that may be useful
-- **Context-Aware**: Uses codebase structure understanding to find relevant examples specific to the task
 
 ## Integration with Other Commands
 
@@ -334,27 +292,6 @@ commands/plan-task/
 ```
 
 
-## Clarification Question Logic
-
-The command uses the following heuristics to determine when clarification is needed:
-
-### Triggers for Clarification
-
-1. **Short descriptions**: Task descriptions under 20 words
-2. **Vague language**: Contains words like "some", "few", "maybe", "probably", "might"
-3. **Missing specifics**: No technical terms, frameworks, or concrete deliverables mentioned
-4. **Scope ambiguity**: Multiple possible interpretations of the task
-
-### Question Categories
-
-Based on what's missing, the command asks:
-
-- **Scope questions**: If boundaries or deliverables are unclear
-- **Dependency questions**: If existing system integration is not specified
-- **Technical questions**: If implementation approach or technologies are not mentioned
-- **Success questions**: If completion criteria are not defined
-- **Priority questions**: If urgency or timeline context is missing
-
 ## Troubleshooting
 
 ### Common Issues
@@ -394,15 +331,17 @@ rm /Users/williamflemmer/Documents/claude-config/tasks/session_context_<old_id>.
 
 ### Required Steps
 
-1. **Context file creation** - always create session context file before starting analysis
-2. **Parallel operations** - always use parallel tool calls for independent operations (documentation reading, pattern searches)
-3. **Context updates** - update both session context and task documentation files with findings
-4. **Pattern discovery** - include links to similar code patterns found in the codebase
+1. **Clarifying questions** - ask 3-5 targeted questions if ANY triggers apply (see "When to Ask" section)
+2. **Context file creation** - always create session context files before starting analysis
+3. **Parallel operations** - always use parallel tool calls for independent operations (documentation reading, pattern searches)
+4. **Context updates** - update both session context and task documentation files with findings
+5. **Pattern discovery** - include links to similar code patterns found in the codebase
 
 ### Compliance Checklist
 
 When executing this command:
-- [ ] Session context file is created first
+- [ ] Clarifying questions asked if ANY "When to Ask" triggers apply
+- [ ] Session context file is created with unique session ID
 - [ ] Task documentation file is initialized
 - [ ] Documentation files are read IN PARALLEL (single message, multiple Read calls)
 - [ ] Pattern searches are executed IN PARALLEL (single message, multiple Grep/Glob calls)
