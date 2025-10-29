@@ -7,7 +7,8 @@
       "Read(//Users/williamflemmer/.claude/commands/**)",
       "Bash(cat:*)",
       "Bash(tree:*)",
-      "Bash(echo \"$session_id\")"
+      "Bash(echo \"$session_id\")",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": []
