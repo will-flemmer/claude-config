@@ -17,3 +17,6 @@ Thumbs.db
 # Agent context files
 tasks/session_context_*.md
 !tasks/session_context_example.md
+
+# Allow .mcp.json in this repo (override global gitignore)
+!.mcp.json
