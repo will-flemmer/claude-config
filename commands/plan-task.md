@@ -100,7 +100,42 @@ The answers enrich the task context and ensure accurate planning.
 - **Analyze task**: Extract objective, constraints, technologies
 - **Ask clarifying questions**: 3-5 targeted questions (see Clarification Questions section)
 
-### 2. Codebase Discovery (Use Parallel Execution)
+### 2. Query Development Memory (Parallel Execution)
+**IMPORTANT**: Query persistent memory for relevant past context before planning.
+
+**Query in parallel** (single message with multiple MCP memory calls):
+```javascript
+// Search for similar past tasks
+const similarTasks = await mcp__memory__search_nodes({
+  query: "[task description keywords]"
+});
+
+// Get architectural constraints
+const architecture = await mcp__memory__open_nodes({
+  names: ["ProjectArchitecture"]
+});
+
+// Find relevant patterns
+const patterns = await mcp__memory__search_nodes({
+  query: "[technology/domain] patterns"
+});
+
+// Check for past failures
+const failures = await mcp__memory__search_nodes({
+  query: "[context] failed approach"
+});
+```
+
+**Add to session context**:
+Create "Relevant Past Context" section with:
+- Similar tasks and their outcomes
+- Architectural decisions to respect
+- Proven patterns to follow
+- Failed approaches to avoid
+
+**If memory not initialized**: Skip this step silently (first-time usage is okay).
+
+### 3. Codebase Discovery (Use Parallel Execution)
 **Find relevant files**:
 ```bash
 find . -type f -name "*.ts" -o -name "*.js" | head -20
@@ -112,7 +147,7 @@ grep -r "pattern" --include="*.ts"
 
 **Update context**: Add discovered architecture to `Technical Decisions`
 
-### 3. Complexity Analysis & Task Breakdown
+### 4. Complexity Analysis & Task Breakdown
 **Assess complexity** (Simple/Medium/Complex):
 - Simple: Single file, < 50 LOC, no dependencies
 - Medium: Multiple files, < 200 LOC, few dependencies
@@ -124,7 +159,7 @@ grep -r "pattern" --include="*.ts"
 - Estimated complexity
 - Dependencies (if any)
 
-### 4. Dependencies & Execution Order
+### 5. Dependencies & Execution Order
 **Identify**:
 - Which tasks must complete first
 - Which can run in parallel
@@ -132,7 +167,7 @@ grep -r "pattern" --include="*.ts"
 
 **Recommend**: Optimal execution sequence
 
-### 5. Implementation Notes & Context Update
+### 6. Implementation Notes & Context Update
 **Provide**:
 - Architecture decisions and rationale
 - Testing strategy
@@ -333,9 +368,10 @@ rm /Users/williamflemmer/Documents/claude-config/tasks/session_context_<old_id>.
 
 1. **Clarifying questions** - ask 3-5 targeted questions if ANY triggers apply (see "When to Ask" section)
 2. **Context file creation** - always create session context files before starting analysis
-3. **Parallel operations** - always use parallel tool calls for independent operations (documentation reading, pattern searches)
-4. **Context updates** - update both session context and task documentation files with findings
-5. **Pattern discovery** - include links to similar code patterns found in the codebase
+3. **Memory querying** - query persistent memory for relevant past context (if initialized)
+4. **Parallel operations** - always use parallel tool calls for independent operations (memory queries, documentation reading, pattern searches)
+5. **Context updates** - update both session context and task documentation files with findings
+6. **Pattern discovery** - include links to similar code patterns found in the codebase
 
 ### Compliance Checklist
 
@@ -343,9 +379,12 @@ When executing this command:
 - [ ] Clarifying questions asked if ANY "When to Ask" triggers apply
 - [ ] Session context file is created with unique session ID
 - [ ] Task documentation file is initialized
+- [ ] Memory system queried for relevant past context (if initialized)
+- [ ] Memory queries executed IN PARALLEL (single message, multiple MCP memory calls)
 - [ ] Documentation files are read IN PARALLEL (single message, multiple Read calls)
 - [ ] Pattern searches are executed IN PARALLEL (single message, multiple Grep/Glob calls)
 - [ ] Both session context and task documentation files are updated with findings
+- [ ] Relevant past context from memory included in session context
 - [ ] Existing code patterns and examples are included in task documentation
 
 This command delivers practical value for breaking down complex work into manageable, actionable components with maximum performance through parallel execution.

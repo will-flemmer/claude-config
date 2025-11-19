@@ -94,6 +94,13 @@ Execute complete TDD cycle for each subtask:
 - Update final quality gates checklist
 - (update context: current state, agent activity log)
 
+**9. Store Implementation Knowledge**
+- Store learnings to persistent memory (if memory initialized)
+- Extract and record: architectural decisions, patterns, bugs fixed, optimizations
+- (update context: agent activity log with "Stored knowledge to memory")
+
+See "Memory Storage" section below for details on what to store.
+
 ## TDD Methodology
 
 Follow strict RED → GREEN → REFACTOR cycles:
@@ -114,6 +121,249 @@ Follow strict RED → GREEN → REFACTOR cycles:
 - Maintain passing tests throughout
 - Run related tests only (verify still passing)
 - Lint modified files: `just lint <files>`
+
+## Memory Storage
+
+**IMPORTANT**: After successful implementation, store learnings to persistent memory for future reference.
+
+### What to Store
+
+Use the MCP memory server to store implementation knowledge. Execute in parallel for efficiency.
+
+#### 1. Architectural Decisions
+
+Store significant design choices made during implementation:
+
+```javascript
+await mcp__memory__create_entities({
+  entities: [{
+    name: "Architecture:[ComponentName]",
+    entityType: "Architecture",
+    observations: [
+      "Decision: [what was decided]",
+      "Reason: [why this approach]",
+      "Trade-off: [what was sacrificed]",
+      "Alternative considered: [other options]",
+      "Date: YYYY-MM-DD",
+      "Context: [relevant background]"
+    ]
+  }]
+});
+
+// Link to project architecture
+await mcp__memory__create_relations({
+  relations: [{
+    from: "Architecture:[ComponentName]",
+    to: "ProjectArchitecture",
+    relationType: "part_of"
+  }]
+});
+```
+
+#### 2. Code Patterns
+
+Store reusable patterns created during implementation:
+
+```javascript
+await mcp__memory__create_entities({
+  entities: [{
+    name: "Pattern:[PatternName]",
+    entityType: "Pattern",
+    observations: [
+      "Pattern: [pattern description]",
+      "Used in: [file paths]",
+      "Solves: [problem it addresses]",
+      "Example: [code snippet or reference]",
+      "Benefits: [advantages]",
+      "Date: YYYY-MM-DD"
+    ]
+  }]
+});
+
+// Link to pattern registry
+await mcp__memory__create_relations({
+  relations: [{
+    from: "Pattern:[PatternName]",
+    to: "CodePatterns",
+    relationType: "stored_in"
+  }]
+});
+```
+
+#### 3. Bugs Fixed
+
+If implementation fixed bugs, record root causes:
+
+```javascript
+await mcp__memory__create_entities({
+  entities: [{
+    name: "Bug:[Component]:[ShortDescription]",
+    entityType: "Bug",
+    observations: [
+      "Symptom: [how it manifested]",
+      "Root cause: [underlying issue]",
+      "Fix: [solution applied]",
+      "File: [affected files]",
+      "Prevention: [how to avoid in future]",
+      "Date: YYYY-MM-DD"
+    ]
+  }]
+});
+
+// Link to bug registry
+await mcp__memory__create_relations({
+  relations: [{
+    from: "Bug:[Component]:[ShortDescription]",
+    to: "BugRegistry",
+    relationType: "tracked_in"
+  }]
+});
+```
+
+#### 4. Performance Optimizations
+
+If implementation included performance work:
+
+```javascript
+await mcp__memory__create_entities({
+  entities: [{
+    name: "Optimization:[Area]",
+    entityType: "Optimization",
+    observations: [
+      "Target: [what was optimized]",
+      "Before: [baseline metrics]",
+      "After: [improved metrics]",
+      "Improvement: [percentage or absolute gain]",
+      "Technique: [how it was done]",
+      "Date: YYYY-MM-DD"
+    ]
+  }]
+});
+
+// Link to optimization log
+await mcp__memory__create_relations({
+  relations: [{
+    from: "Optimization:[Area]",
+    to: "OptimizationLog",
+    relationType: "logged_in"
+  }]
+});
+```
+
+#### 5. Failed Approaches (Critical!)
+
+If you tried something that didn't work, record it:
+
+```javascript
+await mcp__memory__create_entities({
+  entities: [{
+    name: "FailedApproach:[Context]",
+    entityType: "FailedApproach",
+    observations: [
+      "Attempted: [what was tried]",
+      "Failed because: [reason]",
+      "Symptom: [how failure manifested]",
+      "Lesson: [key takeaway]",
+      "Alternative that worked: [successful approach]",
+      "Date: YYYY-MM-DD"
+    ]
+  }]
+});
+
+// Link to lessons learned
+await mcp__memory__create_relations({
+  relations: [{
+    from: "FailedApproach:[Context]",
+    to: "FailedApproaches",
+    relationType: "recorded_in"
+  }]
+});
+```
+
+#### 6. Tool/Library Usage
+
+If you used a new library or tool:
+
+```javascript
+await mcp__memory__create_entities({
+  entities: [{
+    name: "Tool:[ToolName]",
+    entityType: "Tool",
+    observations: [
+      "Purpose: [why it was used]",
+      "Chosen over: [alternatives]",
+      "Reason: [selection criteria]",
+      "Used in: [file paths]",
+      "Pattern: [how it's used]",
+      "Gotcha: [pitfalls discovered]",
+      "Date: YYYY-MM-DD"
+    ]
+  }]
+});
+
+// Link to tool evaluation
+await mcp__memory__create_relations({
+  relations: [{
+    from: "Tool:[ToolName]",
+    to: "ToolEvaluation",
+    relationType: "evaluated_in"
+  }]
+});
+```
+
+### When to Store
+
+Store knowledge in step 9 (after "Finalize Session") IF:
+- Implementation completed successfully (all tests pass)
+- At least one of the following applies:
+  - Made architectural decisions
+  - Created reusable patterns
+  - Fixed bugs
+  - Optimized performance
+  - Tried and failed approaches
+  - Used new tools/libraries
+
+### Execution Pattern
+
+**Use parallel MCP calls** for efficiency:
+
+```javascript
+// Execute all memory operations in parallel
+await Promise.all([
+  mcp__memory__create_entities({ entities: [...architectureEntities] }),
+  mcp__memory__create_entities({ entities: [...patternEntities] }),
+  mcp__memory__create_entities({ entities: [...bugEntities] })
+]);
+
+// Then create relationships
+await mcp__memory__create_relations({ relations: [...allRelations] });
+```
+
+### If Memory Not Initialized
+
+Silently skip this step. Memory storage is optional but recommended.
+
+To initialize memory, run: `/init-memory`
+
+### Selective Storage
+
+**Store only significant learnings** - not every implementation detail:
+- ✅ Store: Non-obvious decisions, hard-won insights, reusable patterns
+- ❌ Don't store: Trivial changes, implementation details, temporary workarounds
+
+### Update Session Context
+
+After storing to memory, update session context:
+
+```markdown
+## Agent Activity Log
+- [timestamp] Stored implementation knowledge to memory:
+  - Architectural decisions: [count]
+  - Code patterns: [count]
+  - Bugs fixed: [count]
+  - Optimizations: [count]
+  - Failed approaches: [count]
+```
 
 ## Error Handling
 

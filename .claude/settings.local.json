@@ -8,7 +8,10 @@
       "Bash(cat:*)",
       "Bash(tree:*)",
       "Bash(echo \"$session_id\")",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(curl:*)",
+      "Bash(./install-mcp-servers.sh:*)",
+      "mcp__memory__read_graph"
     ],
     "deny": [],
     "ask": []

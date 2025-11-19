@@ -1,9 +1,10 @@
 {
   "mcpServers": {
-    "just-mcp": {
-      "command": "/path/to/just-mcp",
+    "sequential-thinking": {
+      "command": "npx",
       "args": [
-        "--stdio"
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
       ]
     },
     "memory": {

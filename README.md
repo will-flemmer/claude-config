@@ -1,88 +1,72 @@
-# Claude Config
+# Claude Code Configuration
 
-This repository contains a versioned copy of my global Claude Code configuration, enabling version control and collaborative development of Claude Code commands and agents.
+Personal Claude Code configuration with custom commands, agents, skills, and persistent memory system.
 
-## Purpose
-
-This repo serves as:
-- **Version Control**: Track changes to Claude Code configuration over time
-- **Documentation**: Centralized documentation for custom commands and workflows
-- **Backup**: Reliable backup of Claude Code customizations
-
-## Syncing with Global Config
-
-Changes made in this repository are copied to the global Claude Code configuration:
+## Quick Start
 
 ```bash
-# Copy commands from repo to global config
-cp -r commands/* ~/.claude/commands/
+# 1. Install MCP servers (sequential-thinking, memory)
+./install-mcp-servers.sh
 
-# Copy CLAUDE.md instructions
-cp CLAUDE.md ~/.claude/CLAUDE.md
+# 2. Sync configuration to ~/.claude/
+./update_root_config.sh
 
-# Copy other config files as needed
+# 3. Setup MCP in your project
+cd /path/to/your/project
+cp ~/.claude/.mcp.json .
+
+# Or use the setup script
+/path/to/claude-config/setup-project-mcp.sh
+
+# 4. Start Claude in your project
+claude
+
+# 5. Initialize memory (in Claude Code)
+/init-memory
 ```
 
-## Structure
+## What's Included
 
-```
-.
-├── CLAUDE.md                    # Agent-First Development Guidelines
-├── commands/                    # Custom slash commands
-│   ├── plan-task/              # Task planning command
-│   ├── implement-plan/         # Implementation command
-│   └── ...
-├── tasks/                      # Generated task plans and session contexts
-└── README.md                   # This file
-```
+**Commands:**
+- `/plan-task` - Plan tasks with memory context
+- `/implement-plan` - TDD implementation with automatic learning storage
+- `/init-memory` - Initialize persistent memory system
+- `/pr-checks` - Monitor PR checks
+- `/create-gh-issue` - Generate GitHub issues
 
-## Key Features
+**Features:**
+- Persistent memory across sessions (remembers decisions, patterns, bugs)
+- Agent-first architecture with specialized agents
+- Context sharing for multi-agent workflows
+- Parallel execution optimization
 
-### Custom Commands
-
-- **plan-task**: Intelligently plan and decompose tasks with parallel execution
-- **implement-plan**: Execute planned tasks with proper context sharing
-- **pr-checks**: Monitor and analyze GitHub PR checks
-- **create-gh-issue**: Generate comprehensive GitHub issues
-
-### Agent-First Architecture
-
-This configuration follows an agent-first approach where:
-- Complex tasks are routed to specialized agents
-- Context is shared via session files in `tasks/`
-- Main Claude agent handles direct tasks like planning
-- Specialized agents handle review, PR management, issue creation
-
-## Usage
-
-Commands are available globally after syncing:
+## Daily Usage
 
 ```bash
-# Use commands in any project
-cd ~/any-project
-/plan-task "Add new feature"
-/implement-plan tasks/feature_plan_<session_id>.md
+# Memory is automatic - just use your commands
+/plan-task "Add feature"      # Queries past context
+/implement-plan tasks/...      # Stores learnings
 ```
 
-## Contributing
+## Setup MCP in New Projects
 
-When making changes:
+Each project needs its own `.mcp.json`:
 
-1. **Edit**: Make changes to command documentation or configuration files
-2. **Document**: Update relevant documentation (CLAUDE.md, command docs)
-3. **Sync**: Copy to global config using the sync commands above
-4. **Commit**: Version control all changes
+```bash
+# Easy way - use the setup script
+cd /path/to/your/project
+/path/to/claude-config/setup-project-mcp.sh
 
-## Configuration Philosophy
+# Or manually copy
+cp /path/to/claude-config/.mcp.json .
+```
 
-- **Planning-Only Commands**: Commands like `plan-task` only create plans, never implement
-- **Parallel Execution**: Optimize performance with parallel tool calls
-- **Context Sharing**: Enable multi-agent coordination via session files
-- **Clear Boundaries**: Explicit separation between planning and implementation
+## Sync Changes
 
-## References
+After editing this repo:
 
-- [Claude Code Documentation](https://docs.claude.com/en/docs/claude-code/)
-- Global config location: `~/.claude/`
-- Session contexts: `tasks/session_context_*.md`
-- Task plans: `tasks/*_<session_id>.md`
+```bash
+./update_root_config.sh       # Sync to ~/.claude/
+```
+
+Update existing projects' `.mcp.json` manually if you change MCP config.
