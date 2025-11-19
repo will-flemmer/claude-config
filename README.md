@@ -5,7 +5,7 @@ Personal Claude Code configuration with custom commands, agents, skills, and per
 ## Quick Start
 
 ```bash
-# 1. Install MCP servers (sequential-thinking, memory)
+# 1. Install MCP servers (sequential-thinking, memory, puppeteer)
 ./install-mcp-servers.sh
 
 # 2. Sync configuration to ~/.claude/

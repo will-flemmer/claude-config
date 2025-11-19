@@ -33,6 +33,14 @@ else
     echo "  ✓ memory server will be downloaded on first use"
 fi
 
+# Check puppeteer server
+echo "3. Checking puppeteer MCP server..."
+if npx --yes --package=@modelcontextprotocol/server-puppeteer --version &> /dev/null; then
+    echo "  ✓ puppeteer server package available"
+else
+    echo "  ✓ puppeteer server will be downloaded on first use"
+fi
+
 echo ""
 echo "✓ MCP servers are ready!"
 echo ""
@@ -46,3 +54,4 @@ echo ""
 echo "What each server provides:"
 echo "  • sequential-thinking: Enhanced reasoning for complex tasks"
 echo "  • memory: Persistent knowledge across sessions"
+echo "  • puppeteer: Browser automation, screenshots, E2E testing"

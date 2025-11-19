@@ -26,6 +26,37 @@ Update or create unit tests following TDD principles with focused, meaningful co
 
 You MUST use the `@unit-testing` skill for all test generation and updates.
 
+### Step 0: Query Testing Memory
+
+**BEFORE writing tests**, query persistent memory for testing knowledge:
+
+```javascript
+// Query in parallel for testing-specific patterns
+const testPatterns = await mcp__memory__search_nodes({
+  query: "[technology/framework] testing patterns"
+});
+
+const testMistakes = await mcp__memory__search_nodes({
+  query: "testing failed approach"
+});
+
+const mockPatterns = await mcp__memory__search_nodes({
+  query: "[technology] mocking patterns"
+});
+
+const edgeCases = await mcp__memory__search_nodes({
+  query: "testing edge cases [domain]"
+});
+```
+
+**Apply findings:**
+- Use proven test patterns from memory
+- Avoid mistakes documented in FailedApproaches
+- Follow established mocking strategies
+- Include edge cases that were previously missed
+
+**If memory not initialized:** Skip this step silently (first-time usage is okay).
+
 ### Step 1: Identify Changes
 
 **For file path input:**
@@ -188,3 +219,39 @@ The command works with any test framework. Always:
 - Mock external dependencies
 - Clear, descriptive test names
 - Focus on quality over quantity
+
+## Storing Testing Knowledge (Manual)
+
+After a successful testing session, you can manually store learnings:
+
+**What to store:**
+- New testing patterns discovered
+- Mocking strategies that worked well
+- Edge cases that caught real bugs
+- Testing mistakes that were made
+- Framework-specific gotchas
+
+**Example storage:**
+```javascript
+await mcp__memory__create_entities({
+  entities: [{
+    name: "Pattern:Testing:[PatternName]",
+    entityType: "Pattern",
+    observations: [
+      "Pattern: [testing pattern description]",
+      "Framework: [Jest/RSpec/etc]",
+      "Used for: [what it tests]",
+      "Example: [code snippet]",
+      "Gotcha: [pitfall to avoid]"
+    ]
+  }]
+});
+```
+
+**When to store:**
+- Found a better way to test something
+- Discovered a common edge case
+- Figured out a tricky mocking scenario
+- Avoided a testing anti-pattern
+
+Just ask: "Store this testing pattern to memory: [description]"
