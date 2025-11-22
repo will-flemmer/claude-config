@@ -11,7 +11,8 @@
       "WebFetch(domain:github.com)",
       "Bash(curl:*)",
       "Bash(./install-mcp-servers.sh:*)",
-      "mcp__memory__read_graph"
+      "mcp__memory__read_graph",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []
