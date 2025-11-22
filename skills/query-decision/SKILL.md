@@ -1,9 +1,6 @@
 ---
-name: Memory Query Decision
-description: Automatically decide when to query persistent memory based on user requests, avoiding redundant queries if context already exists
-tags: [memory, decision-making, context, automatic]
-version: 1.0.0
-created: 2025-11-19
+name: query-decision
+description: Automatically decide when to query persistent memory for historical context - checks if relevant information already exists in current conversation before querying to avoid redundancy
 ---
 
 # Memory Query Decision

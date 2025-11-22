@@ -1,9 +1,6 @@
 ---
-name: Persistent Context Management
-description: Long-term memory across development sessions using MCP memory server
-tags: [memory, context, learning, knowledge-management]
-version: 1.0.0
-created: 2025-11-19
+name: persistent-context
+description: Long-term memory across development sessions using MCP memory server - stores architectural decisions, patterns, bugs, optimizations across sessions
 ---
 
 # Persistent Context Management

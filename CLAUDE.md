@@ -62,6 +62,36 @@ Task(subagent_type="issue-writer",
 
 See `context-sharing-guide.md` for implementation details.
 
+## Memory Integration
+
+**AUTOMATIC**: Before starting any substantial development task, decide whether to query persistent memory.
+
+### Query Memory When:
+- Planning new features or significant changes
+- Working with critical systems (auth, payments, security)
+- Complex debugging or testing
+- Making architectural decisions
+- **First substantial request in a session**
+
+### Skip Memory When:
+- Relevant context already exists in current conversation
+- Simple fixes (typos, formatting)
+- Quick questions or exploration
+- User said "ignore past approaches"
+
+### How to Query:
+Use parallel MCP memory calls:
+```javascript
+const [similar, architecture, patterns, failures] = await Promise.all([
+  mcp__memory__search_nodes({ query: "[context] implementation" }),
+  mcp__memory__open_nodes({ names: ["ProjectArchitecture", "API:ProjectArchitecture"] }),
+  mcp__memory__search_nodes({ query: "[technology] patterns" }),
+  mcp__memory__search_nodes({ query: "[context] failed approach" })
+]);
+```
+
+Apply findings silently - don't announce queries unless results are significant.
+
 ## Quality Standards (For Agents)
 
 Agents must follow:
