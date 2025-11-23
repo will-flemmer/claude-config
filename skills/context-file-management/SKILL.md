@@ -444,6 +444,4 @@ Main Agent:
 
 ## Related Skills
 
-- **subagent-driven-development** - Uses context files for task execution
 - **persistent-context** - Long-term memory (MCP), complements session context
-- **agent-coordination** - Orchestrating multiple agents with context files

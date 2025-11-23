@@ -620,4 +620,3 @@ During planning:
 - **persistent-context** - Foundation for memory storage and retrieval
 - **query-decision** - Deciding when to query memory (upstream skill)
 - **context-file-management** - Where to store synthesized findings
-- **agent-coordination** - Passing memory context to agents

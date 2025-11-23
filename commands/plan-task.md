@@ -3,6 +3,34 @@
 **EXECUTION**: Main Claude agent (no routing)
 **PURPOSE**: Analyze tasks and create actionable implementation plans
 
+---
+
+## 🚨 MANDATORY SKILL INVOCATIONS - DO THESE FIRST 🚨
+
+**BEFORE doing ANYTHING else, invoke these skills:**
+
+1. **First request in session?**
+   ```
+   Skill({ skill: "query-decision" })
+   ```
+   ↳ Automatically decides if memory query is needed
+
+2. **About to read/search 2+ files?**
+   ```
+   Skill({ skill: "parallel-execution-patterns" })
+   ```
+   ↳ Executes reads/searches in parallel (5-8x faster)
+
+3. **Planning a feature?**
+   ```
+   Skill({ skill: "memory-driven-planning" })
+   ```
+   ↳ Queries memory for patterns, failures, decisions
+
+**⚠️ STOP - Did you invoke the skills above? If not, DO IT NOW before continuing!**
+
+---
+
 ## What This Does
 1. **Analyzes** requirements and existing codebase
 2. **Breaks down** work into 3-7 subtasks with complexity estimates
@@ -100,7 +128,7 @@ The answers enrich the task context and ensure accurate planning.
 - **Analyze task**: Extract objective, constraints, technologies
 - **Ask clarifying questions**: 3-5 targeted questions (see Clarification Questions section)
 
-### 2. Query Development Memory (Parallel Execution)
+### 2. Query Development Memory (Parallel Execution - READ from memory)
 **IMPORTANT**: Query persistent memory for relevant past context before planning.
 
 **Query in parallel** (single message with multiple MCP memory calls):
@@ -146,6 +174,122 @@ grep -r "pattern" --include="*.ts"
 - README.md, ARCHITECTURE.md, CONTRIBUTING.md, package.json
 
 **Update context**: Add discovered architecture to `Technical Decisions`
+
+**Then proceed to Step 3.5** to store discovered patterns to memory.
+
+### 3.5. Store Discovered Patterns to Memory
+**IMPORTANT**: After codebase discovery, store valuable patterns to persistent memory for future planning sessions.
+
+**Check for duplicates first**:
+```javascript
+// Query memory to avoid duplicates
+const existingPatterns = await mcp__memory__search_nodes({
+  query: "[pattern name or technology]"
+});
+```
+
+**Store NEW insights only** (execute in parallel):
+
+**Code Patterns Discovered**:
+```javascript
+await mcp__memory__create_entities({
+  entities: [{
+    name: "Pattern:[Technology]:[PatternName]",
+    entityType: "Pattern",
+    observations: [
+      "Pattern: [description of pattern]",
+      "Found in: [file paths]",
+      "Used for: [purpose]",
+      "Example: [brief code snippet or reference]",
+      "Date: YYYY-MM-DD"
+    ]
+  }]
+});
+
+// Link to pattern registry
+await mcp__memory__create_relations({
+  relations: [{
+    from: "Pattern:[Technology]:[PatternName]",
+    to: "CodePatterns",
+    relationType: "stored_in"
+  }]
+});
+```
+
+**Architecture Insights**:
+```javascript
+await mcp__memory__add_observations({
+  observations: [{
+    entityName: "ProjectArchitecture",
+    contents: [
+      "Module organization: [discovered structure]",
+      "Layer separation: [how layers are organized]",
+      "Design pattern: [architectural patterns found]",
+      "Date: YYYY-MM-DD"
+    ]
+  }]
+});
+```
+
+**Testing Patterns**:
+```javascript
+await mcp__memory__create_entities({
+  entities: [{
+    name: "Pattern:Testing:[Framework]:[Pattern]",
+    entityType: "Pattern",
+    observations: [
+      "Framework: [Jest/Vitest/etc]",
+      "Pattern: [testing approach]",
+      "Location: [test file conventions]",
+      "Mocking: [mocking strategy]",
+      "Example: [reference to test file]",
+      "Date: YYYY-MM-DD"
+    ]
+  }]
+});
+```
+
+**Integration Patterns**:
+```javascript
+await mcp__memory__create_entities({
+  entities: [{
+    name: "Pattern:Integration:[ServiceName]",
+    entityType: "Pattern",
+    observations: [
+      "Service: [external service name]",
+      "Integration: [how it's integrated]",
+      "Error handling: [approach]",
+      "Location: [file paths]",
+      "Pattern: [specific pattern used]",
+      "Date: YYYY-MM-DD"
+    ]
+  }]
+});
+```
+
+**When to Store**:
+- ✅ NEW patterns not already in memory
+- ✅ Reusable architectural insights
+- ✅ Non-obvious design decisions
+- ✅ Testing conventions and strategies
+- ✅ Integration approaches
+
+**When NOT to Store**:
+- ❌ Duplicates (already in memory)
+- ❌ Task-specific implementation details
+- ❌ Temporary planning notes
+- ❌ Trivial or obvious patterns
+
+**Update session context** after storage:
+```markdown
+## Memory Storage
+- Stored [count] code patterns
+- Stored [count] architecture insights
+- Stored [count] testing patterns
+- Stored [count] integration patterns
+```
+
+**If memory not initialized**: Silently skip this step (optional feature).
 
 ### 4. Complexity Analysis & Task Breakdown
 **Assess complexity** (Simple/Medium/Complex):
@@ -383,8 +527,11 @@ When executing this command:
 - [ ] Memory queries executed IN PARALLEL (single message, multiple MCP memory calls)
 - [ ] Documentation files are read IN PARALLEL (single message, multiple Read calls)
 - [ ] Pattern searches are executed IN PARALLEL (single message, multiple Grep/Glob calls)
+- [ ] Discovered patterns stored to memory after codebase discovery (if initialized)
+- [ ] Checked for duplicate patterns before storing to memory
 - [ ] Both session context and task documentation files are updated with findings
 - [ ] Relevant past context from memory included in session context
 - [ ] Existing code patterns and examples are included in task documentation
+- [ ] Session context updated with count of patterns stored to memory
 
 This command delivers practical value for breaking down complex work into manageable, actionable components with maximum performance through parallel execution.

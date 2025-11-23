@@ -7,7 +7,39 @@ Update or create unit tests following TDD principles with focused, meaningful co
 - PR URL: `https://github.com/org/repo/pull/123` - Analyze PR changes and update relevant tests
 - No input: Analyze git diff for uncommitted changes
 
-**IMPORTANT**: Always use `@unit-testing` skill. Always use `just` commands for testing and linting.
+---
+
+## 🚨 MANDATORY SKILL INVOCATIONS - DO THESE FIRST 🚨
+
+**BEFORE doing ANYTHING else, invoke these skills:**
+
+1. **First request in session?**
+   ```
+   Skill({ skill: "query-decision" })
+   ```
+   ↳ Automatically decides if memory query is needed
+
+2. **Working with unit tests?**
+   ```
+   Skill({ skill: "unit-testing" })
+   ```
+   ↳ Applies TDD principles, filters redundant tests, tests behavior not configuration
+
+3. **About to read/search multiple files?**
+   ```
+   Skill({ skill: "parallel-execution-patterns" })
+   ```
+   ↳ Executes reads/searches in parallel (5-8x faster)
+
+4. **Before claiming tests are complete:**
+   ```
+   Skill({ skill: "verification-before-completion" })
+   ```
+   ↳ ALWAYS verify tests pass before claiming done
+
+**⚠️ STOP - Did you invoke the skills above? If not, DO IT NOW before continuing!**
+
+---
 
 ## Usage
 

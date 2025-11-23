@@ -3,6 +3,34 @@
 **EXECUTION**: Main Claude agent (no routing)
 **PURPOSE**: Implement task plans using TDD methodology
 
+---
+
+## 🚨 MANDATORY SKILL INVOCATIONS - DO THESE FIRST 🚨
+
+**BEFORE doing ANYTHING else, invoke these skills:**
+
+1. **First request in session?**
+   ```
+   Skill({ skill: "query-decision" })
+   ```
+   ↳ Automatically decides if memory query is needed
+
+2. **Writing/updating tests?**
+   ```
+   Skill({ skill: "unit-testing" })
+   ```
+   ↳ Applies TDD principles, filters redundant tests
+
+3. **Before claiming complete:**
+   ```
+   Skill({ skill: "verification-before-completion" })
+   ```
+   ↳ ALWAYS verify before claiming work is done
+
+**⚠️ STOP - Did you invoke the skills above? If not, DO IT NOW before continuing!**
+
+---
+
 ## What This Does
 Implements planned development tasks following TDD methodology. Reads planning documents, writes tests and code, updates session context throughout execution.
 

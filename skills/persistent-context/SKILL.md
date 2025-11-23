@@ -422,7 +422,6 @@ await create_relations({
 
 ## Related Skills
 
-- **subagent-driven-development** - Execute tasks with memory context
 - **verification-before-completion** - Verify memory was stored
 - **unit-testing** - Test memory integration
 

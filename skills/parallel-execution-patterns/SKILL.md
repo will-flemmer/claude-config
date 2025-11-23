@@ -602,5 +602,4 @@ Task({ subagent_type: "type", prompt: "task2" })
 ## Related Skills
 
 - **memory-driven-planning** - Uses parallel memory queries
-- **agent-coordination** - Parallel agent dispatch
 - **context-file-management** - Efficient context loading
