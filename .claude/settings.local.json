@@ -14,7 +14,8 @@
       "mcp__memory__read_graph",
       "Bash(done)",
       "Bash(.claude/hooks/session-start.sh)",
-      "Bash(/Users/williamflemmer/Documents/dev/claude-config/commands/create-gh-issue/create-gh-issue.sh:*)"
+      "Bash(/Users/williamflemmer/Documents/dev/claude-config/commands/create-gh-issue/create-gh-issue.sh:*)",
+      "Skill(query-decision)"
     ],
     "deny": [],
     "ask": []

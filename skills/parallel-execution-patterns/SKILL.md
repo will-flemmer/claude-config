@@ -11,6 +11,13 @@ Execute independent operations in parallel for dramatic performance improvements
 
 **Core principle:** If operations don't depend on each other, execute them in parallel (single message, multiple tool calls).
 
+**How to invoke:**
+```
+Skill({ skill: "parallel-execution-patterns" })
+```
+
+**When to invoke:** Before reading 2+ files, running 2+ searches, or dispatching 2+ agents.
+
 ## When to Use
 
 Use parallel execution when:

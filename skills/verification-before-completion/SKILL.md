@@ -13,6 +13,13 @@ Claiming work is complete without verification is dishonesty, not efficiency.
 
 **Violating the letter of this rule is violating the spirit of this rule.**
 
+**How to invoke:**
+```
+Skill({ skill: "verification-before-completion" })
+```
+
+**When to invoke:** BEFORE claiming work is complete, fixed, passing, or making any PR/commit.
+
 ## The Iron Law
 
 ```

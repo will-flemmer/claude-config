@@ -7,9 +7,14 @@ description: Automatically decide when to query persistent memory for historical
 
 ## When to Use This Skill
 
-**AUTOMATICALLY at the start of EVERY user request** - before starting any work.
+**INVOKE THIS SKILL at the start of EVERY substantial user request** - before starting any work.
 
 This skill determines whether to query persistent memory for historical context.
+
+**How to invoke:**
+```
+Skill({ skill: "query-decision" })
+```
 
 ## Decision Process
 
@@ -226,17 +231,19 @@ const bugContext = await Promise.all([
 
 ## Integration Pattern
 
-This skill should be invoked **automatically** as the first step when processing any user request:
+This skill must be **manually invoked** as the first step when processing any substantial user request:
 
 ```
 User asks question
   ↓
-Step 1: Invoke @query-decision skill
+Step 1: Claude invokes Skill({ skill: "query-decision" })
   ↓
 Step 2: If skill decides to query → Load memory context
   ↓
 Step 3: Process request with enriched context
 ```
+
+**Remember:** Skills don't auto-trigger. You must explicitly invoke them using the Skill tool.
 
 ## Key Principles
 
