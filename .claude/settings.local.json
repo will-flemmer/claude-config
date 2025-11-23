@@ -12,9 +12,28 @@
       "Bash(curl:*)",
       "Bash(./install-mcp-servers.sh:*)",
       "mcp__memory__read_graph",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(.claude/hooks/session-start.sh)",
+      "Bash(/Users/williamflemmer/Documents/dev/claude-config/commands/create-gh-issue/create-gh-issue.sh:*)"
     ],
     "deny": [],
     "ask": []
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "just-mcp",
+    "memory"
+  ],
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/session-start.sh"
+          }
+        ]
+      }
+    ]
   }
 }

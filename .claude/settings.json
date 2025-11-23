@@ -35,5 +35,17 @@
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "just-mcp"
-  ]
+  ],
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Please read and familiarize yourself with the project guidelines in @README.md before beginning work.'"
+          }
+        ]
+      }
+    ]
+  }
 }

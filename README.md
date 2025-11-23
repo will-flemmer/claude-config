@@ -32,7 +32,6 @@ claude
 - `/implement-plan` - TDD implementation with automatic learning storage
 - `/init-memory` - Initialize persistent memory system
 - `/pr-checks` - Monitor PR checks
-- `/create-gh-issue` - Generate GitHub issues
 
 **Features:**
 - Persistent memory across sessions (remembers decisions, patterns, bugs)
