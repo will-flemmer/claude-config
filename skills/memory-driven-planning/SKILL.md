@@ -89,21 +89,69 @@ const [authImpls, archConstraints, oauthPatterns, authFailures] = await Promise.
 ]);
 ```
 
-### Step 3: Review Results
+### Step 3: Score and Filter Results
 
-**For each query result:**
+**CRITICAL:** Apply systematic scoring to filter out low-relevance results.
+
+**For each entity/observation, calculate scores (0-1):**
+
+**Relevance Score:**
+- 1.0: Exact match (entity name or keywords match query perfectly)
+- 0.8: Strong match (domain/technology matches, related concepts)
+- 0.6: Moderate match (same area but different specifics)
+- 0.4: Weak match (tangentially related)
+- 0.2: Poor match (different domain but might have insights)
+- 0.0: No match (completely unrelated)
+
+**Recency Score:**
+- Extract date from observations (look for "Date: YYYY-MM-DD" or "date: YYYY-MM-DD")
+- If no date: assume 0.5 (unknown age)
+- Calculate: `1.0 - (days_old / 365)`
+- Cap at 0.1 minimum (old but potentially still valuable)
+
+**Specificity Score:**
+- 1.0: Specific implementation details, code examples, exact patterns
+- 0.8: Detailed approach with rationale
+- 0.6: General pattern or decision
+- 0.4: High-level principle
+- 0.2: Vague or generic observation
+
+**Confidence Score:**
+- Check for confidence markers in observations:
+  - "confidence: 0.95" or "[confidence: X]" → use that value
+  - "proven in production" or "validated" → 0.9
+  - "experimental" or "untested" → 0.5
+  - No marker → 0.7 (default medium confidence)
+
+**Overall Score:**
+```
+overall_score = relevance × recency × specificity × confidence
+```
+
+**Filtering:**
+1. Calculate overall score for each entity/observation
+2. **Filter out**: scores < 0.6 (low relevance)
+3. **Rank remaining** by score (highest first)
+4. **Keep top 5-10** most relevant results per query
+
+**Result Format:**
+```markdown
+Entity: Pattern:JWTAuth
+Score: 0.85 (relevance: 0.95, recency: 0.92, specificity: 1.0, confidence: 0.95)
+Observations:
+- Pattern: JWT with 15-min expiry [confidence: 0.95] [date: 2025-01-15]
+- Used in: 5 implementations [last: 2025-01-10]
+```
+
+### Step 4: Review Filtered Results
+
+**For each high-scoring result:**
 - Read entity observations
-- Identify relevant vs irrelevant information
+- Extract actionable insights
 - Note specific constraints or decisions
 - Flag critical failures to avoid
 
-**Filters to apply:**
-- **Recency:** Newer observations often more relevant
-- **Specificity:** Specific to current domain/technology
-- **Criticality:** Security, data integrity, performance critical items
-- **Applicability:** Does it apply to current task?
-
-### Step 4: Synthesize Findings
+### Step 5: Synthesize Findings
 
 **Create synthesis in session context file:**
 
@@ -132,7 +180,7 @@ From ProjectArchitecture:
 - [Decision 2]: [Context and implications]
 ```
 
-### Step 5: Apply Insights to Planning
+### Step 6: Apply Insights to Planning
 
 **Use synthesized findings to:**
 

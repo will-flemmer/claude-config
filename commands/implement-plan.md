@@ -170,12 +170,14 @@ await mcp__memory__create_entities({
     name: "Pattern:[PatternName]",
     entityType: "Pattern",
     observations: [
-      "Pattern: [pattern description]",
+      "Pattern: [pattern description] [confidence: 0.8]",
       "Used in: [file paths]",
       "Solves: [problem it addresses]",
       "Example: [code snippet or reference]",
       "Benefits: [advantages]",
-      "Date: YYYY-MM-DD"
+      "Date: YYYY-MM-DD",
+      "Status: Active",
+      "Validated: 1 implementation [last: YYYY-MM-DD]"
     ]
   }]
 });
@@ -189,6 +191,13 @@ await mcp__memory__create_relations({
   }]
 });
 ```
+
+**Temporal Tracking Format:**
+- **confidence: X** - How confident (0.5=experimental, 0.7=tested, 0.9=proven in production, 0.95=battle-tested)
+- **Status: Active|Superseded|Deprecated** - Current state of this approach
+- **Validated: N implementations [last: DATE]** - Track usage success
+- **Supersedes: EntityName [date: DATE]** - If replacing an older approach
+- **Date: YYYY-MM-DD** - When this was created/last updated
 
 #### 3. Bugs Fixed
 
@@ -364,6 +373,72 @@ After storing to memory, update session context:
   - Optimizations: [count]
   - Failed approaches: [count]
 ```
+
+### Memory Feedback Loop (Learning from Outcomes)
+
+**When implementation uses existing memory entities:**
+
+If you queried memory during planning and successfully used patterns/decisions:
+
+1. **Identify which entities were applied**
+   - Which patterns were followed?
+   - Which architectural decisions guided implementation?
+   - Which failed approaches were avoided?
+
+2. **Update confidence and validation count:**
+
+```javascript
+// If Pattern:JWTAuth was used successfully
+await mcp__memory__add_observations({
+  observations: [{
+    entityName: "Pattern:JWTAuth",
+    contents: [
+      "Validated: 2 implementations [last: 2025-11-24]",  // Increment count
+      "Confidence increased: 0.85 → 0.90 (successful reuse)"  // Boost confidence
+    ]
+  }]
+});
+```
+
+3. **Mark superseded approaches:**
+
+```javascript
+// If you replaced an old pattern
+await mcp__memory__add_observations({
+  observations: [{
+    entityName: "Pattern:SessionCookies",
+    contents: [
+      "Status: Superseded",
+      "Superseded by: Pattern:JWTAuth [date: 2025-11-24]",
+      "Reason: Better scalability and performance"
+    ]
+  }]
+});
+```
+
+4. **Record validation failures:**
+
+If a pattern was tried but didn't work as expected:
+
+```javascript
+await mcp__memory__add_observations({
+  observations: [{
+    entityName: "Pattern:ProblematicPattern",
+    contents: [
+      "Validation failed: 2025-11-24",
+      "Issue: [what went wrong]",
+      "Context: [when it fails vs works]",
+      "Confidence decreased: 0.8 → 0.6"
+    ]
+  }]
+});
+```
+
+**Benefits:**
+- Memory improves over time based on real outcomes
+- Confidence scores reflect actual success rate
+- Obsolete approaches are marked
+- Future queries get better results
 
 ## Error Handling
 

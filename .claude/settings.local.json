@@ -15,7 +15,10 @@
       "Bash(done)",
       "Bash(.claude/hooks/session-start.sh)",
       "Bash(/Users/williamflemmer/Documents/dev/claude-config/commands/create-gh-issue/create-gh-issue.sh:*)",
-      "Skill(query-decision)"
+      "Skill(query-decision)",
+      "mcp__memory__search_nodes",
+      "mcp__memory__open_nodes",
+      "Skill(parallel-execution-patterns)"
     ],
     "deny": [],
     "ask": []
