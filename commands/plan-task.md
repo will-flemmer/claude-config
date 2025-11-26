@@ -33,11 +33,15 @@
 
 ## What This Does
 1. **Analyzes** requirements and existing codebase
-2. **Breaks down** work into 3-7 subtasks with complexity estimates
-3. **Identifies** dependencies and execution order
-4. **Provides** implementation guidance and risk areas
+2. **Discovers & verifies** available APIs before suggesting their use
+3. **Validates** technical assumptions using Explore agent
+4. **Breaks down** work into 3-7 subtasks with complexity estimates
+5. **Identifies** dependencies and execution order
+6. **Provides** implementation guidance grounded in verified code
 
 ## Key Features
+- **API verification** - every suggested API has file:line reference or marked "needs creation"
+- **Explore agent validation** - technical assumptions verified before finalizing plan
 - **Parallel execution** for 5-8x faster codebase analysis
 - **Context integration** for multi-agent workflows
 - **Complexity scoring** (Simple/Medium/Complex)
@@ -291,7 +295,98 @@ await mcp__memory__create_entities({
 
 **If memory not initialized**: Silently skip this step (optional feature).
 
-### 4. Complexity Analysis & Task Breakdown
+### 4. API & Interface Discovery
+
+**CRITICAL**: Before suggesting ANY API usage, verify it actually exists. Plans that suggest non-existent APIs are worse than no plan.
+
+**For each module/service you plan to use:**
+
+1. **Read the actual source file** - don't assume based on naming
+2. **List exported functions/classes** with their signatures
+3. **Note parameters and return types**
+4. **Flag anything that needs to be created**
+
+**Discovery approach** (execute in parallel):
+```javascript
+// Find service/module files
+Glob({ pattern: "**/services/**/*.ts" })
+Glob({ pattern: "**/lib/**/*.ts" })
+Glob({ pattern: "**/utils/**/*.ts" })
+
+// Search for specific functionality
+Grep({ pattern: "export (function|class|const)", path: "src/" })
+```
+
+**Then read and document available APIs:**
+```markdown
+## Verified Available APIs
+
+### src/services/UserService.ts
+- `getUserById(id: string): Promise<User>` ✅ EXISTS (line 45)
+- `updateUser(id: string, data: Partial<User>): Promise<User>` ✅ EXISTS (line 78)
+- `authenticate()` ❌ DOES NOT EXIST - needs creation
+
+### src/utils/validation.ts
+- `validateEmail(email: string): boolean` ✅ EXISTS (line 12)
+- `validatePhone()` ❌ DOES NOT EXIST - needs creation
+```
+
+**Rules:**
+- ✅ Every API you suggest MUST have a file:line reference OR be marked "needs creation"
+- ✅ Every import path MUST be verified to exist
+- ❌ NEVER suggest methods based on assumed naming conventions
+- ❌ NEVER assume a utility exists just because it would be convenient
+
+### 5. Validation Phase (Use Explore Agent)
+
+**MANDATORY**: After drafting implementation approach, validate technical assumptions.
+
+**Use Explore agent** for efficient validation without bloating main context:
+```javascript
+Task({
+  subagent_type: "Explore",
+  prompt: `Verify these APIs/modules exist in the codebase. Be thorough - check all naming variations.
+
+  APIs to verify:
+  1. [API or function name]
+  2. [Import path]
+  3. [Class or module]
+
+  For each item report:
+  - EXISTS: file path + line number + actual signature
+  - MISSING: not found after thorough search (checked: [locations searched])
+
+  Also check for similar existing implementations that could be extended.`
+})
+```
+
+**Update plan based on validation findings:**
+1. **Remove** suggestions for non-existent APIs
+2. **Add subtasks** for any APIs that need to be created
+3. **Adjust complexity** estimates (creating new APIs adds work)
+4. **Link to similar code** that can be used as reference
+
+**Document validation results:**
+```markdown
+## Validation Results
+
+### Verified to USE (exists)
+| API | Location | Signature |
+|-----|----------|-----------|
+| `getUserById` | `src/services/UserService.ts:45` | `(id: string) => Promise<User>` |
+
+### Must CREATE (verified missing)
+| API | Suggested Location | Proposed Signature | Added as Subtask |
+|-----|-------------------|-------------------|------------------|
+| `authenticate` | `src/services/AuthService.ts` | `(creds: Credentials) => Promise<Token>` | Subtask 3 |
+
+### Blocked/Unclear (cannot verify)
+| Assumption | Blocker | Resolution Needed |
+|------------|---------|-------------------|
+| Redis cache available | No redis config found | Ask user about infrastructure |
+```
+
+### 6. Complexity Analysis & Task Breakdown
 **Assess complexity** (Simple/Medium/Complex):
 - Simple: Single file, < 50 LOC, no dependencies
 - Medium: Multiple files, < 200 LOC, few dependencies
@@ -303,7 +398,7 @@ await mcp__memory__create_entities({
 - Estimated complexity
 - Dependencies (if any)
 
-### 5. Dependencies & Execution Order
+### 7. Dependencies & Execution Order
 **Identify**:
 - Which tasks must complete first
 - Which can run in parallel
@@ -311,7 +406,7 @@ await mcp__memory__create_entities({
 
 **Recommend**: Optimal execution sequence
 
-### 6. Implementation Notes & Context Update
+### 8. Implementation Notes & Context Update
 **Provide**:
 - Architecture decisions and rationale
 - Testing strategy
@@ -405,9 +500,11 @@ plan-task "Add some search features"
 
 ### File Paths
 
-All generated files use absolute paths for reliability:
-- Session context: `/Users/williamflemmer/Documents/claude-config/tasks/session_context_<session_id>.md`
-- Task documentation: `/Users/williamflemmer/Documents/claude-config/tasks/<descriptive-name>_<session_id>.md`
+All generated files are created in the **current project directory** (not ~/.claude/):
+- Session context: `tasks/session_context_<session_id>.md`
+- Task documentation: `tasks/<descriptive-name>_<session_id>.md`
+
+**IMPORTANT**: Create files relative to the project root, NOT in ~/.claude/tasks/.
 
 ## Output Formats
 
@@ -417,8 +514,8 @@ All generated files use absolute paths for reliability:
 ✅ Task Plan Created Successfully
 
 Session ID: plan_20251010_143022_12345
-Session Context: /Users/williamflemmer/Documents/claude-config/tasks/session_context_plan_20251010_143022_12345.md
-Task Plan: /Users/williamflemmer/Documents/claude-config/tasks/user_authentication_oauth2_20251010_143022_12345.md
+Session Context: tasks/session_context_plan_20251010_143022_12345.md
+Task Plan: tasks/user_authentication_oauth2_20251010_143022_12345.md
 
 📋 Task Summary:
 - Task complexity: Medium
@@ -479,14 +576,14 @@ commands/plan-task/
 
 ```bash
 # Create tasks directory
-mkdir -p /Users/williamflemmer/Documents/claude-config/tasks
+mkdir -p tasks
 ```
 
 #### "Session context file already exists"
 
 ```bash
 # Use a different session ID or remove old file
-rm /Users/williamflemmer/Documents/claude-config/tasks/session_context_<old_id>.md
+rm tasks/session_context_<old_id>.md
 ```
 
 ## Quality Standards
@@ -514,24 +611,44 @@ rm /Users/williamflemmer/Documents/claude-config/tasks/session_context_<old_id>.
 2. **Context file creation** - always create session context files before starting analysis
 3. **Memory querying** - query persistent memory for relevant past context (if initialized)
 4. **Parallel operations** - always use parallel tool calls for independent operations (memory queries, documentation reading, pattern searches)
-5. **Context updates** - update both session context and task documentation files with findings
-6. **Pattern discovery** - include links to similar code patterns found in the codebase
+5. **API discovery** - verify all APIs/modules exist before suggesting their use
+6. **Validation phase** - use Explore agent to validate technical assumptions
+7. **Context updates** - update both session context and task documentation files with findings
+8. **Pattern discovery** - include links to similar code patterns found in the codebase
 
 ### Compliance Checklist
 
 When executing this command:
+
+**Setup & Context**
 - [ ] Clarifying questions asked if ANY "When to Ask" triggers apply
 - [ ] Session context file is created with unique session ID
 - [ ] Task documentation file is initialized
+
+**Memory Integration**
 - [ ] Memory system queried for relevant past context (if initialized)
 - [ ] Memory queries executed IN PARALLEL (single message, multiple MCP memory calls)
-- [ ] Documentation files are read IN PARALLEL (single message, multiple Read calls)
-- [ ] Pattern searches are executed IN PARALLEL (single message, multiple Grep/Glob calls)
 - [ ] Discovered patterns stored to memory after codebase discovery (if initialized)
 - [ ] Checked for duplicate patterns before storing to memory
-- [ ] Both session context and task documentation files are updated with findings
-- [ ] Relevant past context from memory included in session context
-- [ ] Existing code patterns and examples are included in task documentation
-- [ ] Session context updated with count of patterns stored to memory
 
-This command delivers practical value for breaking down complex work into manageable, actionable components with maximum performance through parallel execution.
+**Discovery & Parallel Execution**
+- [ ] Documentation files read IN PARALLEL (single message, multiple Read calls)
+- [ ] Pattern searches executed IN PARALLEL (single message, multiple Grep/Glob calls)
+
+**API & Technical Validation (CRITICAL)**
+- [ ] Every suggested API verified with file:line reference OR marked "needs creation"
+- [ ] Every import path verified to exist in codebase
+- [ ] No methods suggested based on assumed naming conventions
+- [ ] Explore agent used to validate technical assumptions
+- [ ] Validation results documented (EXISTS/MISSING/BLOCKED tables)
+- [ ] Missing APIs added as subtasks with complexity adjustment
+- [ ] Blocked assumptions flagged for user resolution
+
+**Output Quality**
+- [ ] Both session context and task documentation files updated with findings
+- [ ] Relevant past context from memory included in session context
+- [ ] Existing code patterns and examples included in task documentation
+- [ ] Session context updated with count of patterns stored to memory
+- [ ] All implementation steps reference verified existing code or explicitly marked new code
+
+This command delivers practical value for breaking down complex work into manageable, actionable components with maximum performance through parallel execution and **verified technical foundations**.
