@@ -39,6 +39,12 @@ if [ -f .mcp.json ]; then
     echo "✓ Copied .mcp.json to ~/.claude/"
 fi
 
+# Copy global settings
+if [ -f settings.json ]; then
+    cp settings.json ~/.claude/
+    echo "✓ Copied settings.json to ~/.claude/"
+fi
+
 echo ""
 echo "Configuration sync complete!"
 echo ""
