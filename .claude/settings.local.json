@@ -18,7 +18,8 @@
       "Skill(query-decision)",
       "mcp__memory__search_nodes",
       "mcp__memory__open_nodes",
-      "Skill(parallel-execution-patterns)"
+      "Skill(parallel-execution-patterns)",
+      "WebFetch(domain:www.josecasanova.com)"
     ],
     "deny": [],
     "ask": []
