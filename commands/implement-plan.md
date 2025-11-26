@@ -15,13 +15,19 @@
    ```
    ↳ Automatically decides if memory query is needed
 
-2. **Writing/updating tests?**
+2. **Writing any code?**
+   ```
+   Skill({ skill: "software-development" })
+   ```
+   ↳ Clean code principles - layer separation, DRY, no unnecessary try/catch
+
+3. **Writing/updating tests?**
    ```
    Skill({ skill: "unit-testing" })
    ```
    ↳ Applies TDD principles, filters redundant tests
 
-3. **Before claiming complete:**
+4. **Before claiming complete:**
    ```
    Skill({ skill: "verification-before-completion" })
    ```

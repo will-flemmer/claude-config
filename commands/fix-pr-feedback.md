@@ -13,21 +13,27 @@ model: claude-opus-4-5-20251101
 
 ---
 
-## Mandatory Skill Invocation
+## Mandatory Skill Invocations
 
-**BEFORE making changes, invoke:**
+**BEFORE making changes, invoke these skills:**
 
-```
-Skill({ skill: "unit-testing" })
-```
+1. **Writing any code?**
+   ```
+   Skill({ skill: "software-development" })
+   ```
+   ↳ Clean code principles - layer separation, DRY, no unnecessary try/catch
 
-Use when feedback involves test changes.
+2. **Feedback involves tests?**
+   ```
+   Skill({ skill: "unit-testing" })
+   ```
+   ↳ Applies TDD principles, no conditionals in tests
 
-```
-Skill({ skill: "verification-before-completion" })
-```
-
-Use before claiming any fix is complete.
+3. **Before claiming complete:**
+   ```
+   Skill({ skill: "verification-before-completion" })
+   ```
+   ↳ ALWAYS verify before claiming work is done
 
 ---
 

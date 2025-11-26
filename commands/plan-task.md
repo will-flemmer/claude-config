@@ -386,28 +386,78 @@ Task({
 | Redis cache available | No redis config found | Ask user about infrastructure |
 ```
 
-### 6. Complexity Analysis & Task Breakdown
-**Assess complexity** (Simple/Medium/Complex):
+### 6-8. Analysis Phase (Use Sequential Thinking)
+
+**Use sequential thinking for task decomposition and analysis.**
+
+This ensures thorough reasoning about how to break down the work.
+
+```javascript
+mcp__sequential-thinking__sequentialthinking({
+  thought: "Analyzing task: [description]. I need to decompose this into implementable subtasks. Let me consider the logical components, dependencies, and risks.",
+  thoughtNumber: 1,
+  totalThoughts: 8,
+  nextThoughtNeeded: true
+})
+```
+
+**Required thinking steps:**
+
+**Step 1**: Component Identification
+- What are the logical components of this task?
+- What functionality needs to be built?
+- What are the boundaries of each component?
+
+**Step 2**: Decomposition Strategy
+- What's the simplest way to break this down?
+- Are subtasks right-sized? (not too big, not too small)
+- Is each subtask independently testable?
+
+**Step 3**: Complexity Assessment
 - Simple: Single file, < 50 LOC, no dependencies
 - Medium: Multiple files, < 200 LOC, few dependencies
 - Complex: Many files, > 200 LOC, or intricate logic
+- Justify each complexity rating
 
-**Create tasks**: 3-7 subtasks, each with:
+**Step 4**: Dependency Analysis
+- Which subtasks must complete first?
+- Which can run in parallel?
+- External dependencies (APIs, libraries)?
+- Are there hidden dependencies?
+
+**Step 5**: Risk Identification
+- What could go wrong?
+- Which parts are most uncertain?
+- Where might estimates be wrong?
+- What needs user clarification?
+
+**Step 6**: Execution Order
+- Optimal sequence for implementation
+- Which tasks unblock others?
+- Where are the critical paths?
+
+**Step 7**: Testing Strategy
+- How will each subtask be tested?
+- What test patterns apply?
+- Are there integration testing needs?
+
+**Step 8**: Final Review
+- Is the decomposition complete?
+- Are all acceptance criteria clear?
+- Is the plan implementable?
+- Any revisions needed?
+
+**Output from sequential thinking:**
+
+**Subtasks** (3-7 subtasks, each with):
 - Clear objective
 - Acceptance criteria
-- Estimated complexity
+- Estimated complexity (with justification)
 - Dependencies (if any)
 
-### 7. Dependencies & Execution Order
-**Identify**:
-- Which tasks must complete first
-- Which can run in parallel
-- External dependencies (APIs, libraries)
+**Execution order**: Optimal sequence with rationale
 
-**Recommend**: Optimal execution sequence
-
-### 8. Implementation Notes & Context Update
-**Provide**:
+**Implementation notes**:
 - Architecture decisions and rationale
 - Testing strategy
 - Risk areas requiring attention
