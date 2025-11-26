@@ -1,6 +1,6 @@
 # Claude Code Configuration
 
-Personal Claude Code configuration with custom commands, agents, skills, and persistent memory system.
+Personal Claude Code configuration with custom commands, skills, and persistent memory system.
 
 ## Quick Start
 
@@ -35,8 +35,7 @@ claude
 
 **Features:**
 - Persistent memory across sessions (remembers decisions, patterns, bugs)
-- Agent-first architecture with specialized agents
-- Context sharing for multi-agent workflows
+- Skills for workflow automation (TDD, verification, parallel execution)
 - Parallel execution optimization
 
 ## Daily Usage

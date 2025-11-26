@@ -14,12 +14,9 @@
 
 ## Task Breakdown
 
-This section will be populated by the task-decomposition-expert agent with a structured breakdown of the task into manageable subtasks:
-
 ### Subtask 1: [Title]
 - **Description**: [What needs to be done]
 - **Dependencies**: [What this depends on]
-- **Estimated Effort**: [Time estimate]
 - **Acceptance Criteria**:
   - [ ] [Criterion 1]
   - [ ] [Criterion 2]
@@ -27,14 +24,11 @@ This section will be populated by the task-decomposition-expert agent with a str
 ### Subtask 2: [Title]
 - **Description**: [What needs to be done]
 - **Dependencies**: [What this depends on]
-- **Estimated Effort**: [Time estimate]
 - **Acceptance Criteria**:
   - [ ] [Criterion 1]
   - [ ] [Criterion 2]
 
 ## Implementation Steps
-
-This section will be populated by the task-decomposition-expert agent with detailed step-by-step implementation guidance:
 
 1. **Step 1**: [Action to take]
    - Details and considerations
@@ -46,95 +40,50 @@ This section will be populated by the task-decomposition-expert agent with detai
 
 ## Existing Code Patterns & Examples
 
-This section will be populated by the task-decomposition-expert agent with links to similar existing code for reference.
-
-**AGENT INSTRUCTION**: Before searching for patterns, read codebase documentation (README.md, ARCHITECTURE.md, CONTRIBUTING.md, AI_CONTRIBUTING.md, docs/) to understand project structure, naming conventions, and folder organization. This will make your searches more targeted and effective.
+Before searching for patterns, read codebase documentation (README.md, ARCHITECTURE.md, CONTRIBUTING.md, docs/) to understand project structure.
 
 ### Codebase Structure Notes
-- Project structure: [Key directories and their purposes learned from docs]
-- Testing location: [Where tests are typically located]
-- Naming conventions: [Patterns observed in documentation]
-- Tech stack: [Technologies and frameworks in use]
+- Project structure: [Key directories and their purposes]
+- Testing location: [Where tests are located]
+- Naming conventions: [Patterns observed]
+- Tech stack: [Technologies in use]
 
 ### Similar Tests
-- `path/to/similar_test.spec.ts` - Example test pattern for similar functionality
-- `path/to/another_test.spec.ts` - Related test approach
+- `path/to/similar_test.spec.ts` - Example test pattern
 
 ### Similar Implementations
-- `path/to/similar_component.ts:123` - Similar component/module implementation
-- `path/to/related_service.ts:45` - Related service pattern
-
-### Related Code Patterns
-- `path/to/pattern_example.ts` - Design pattern used in similar context
-- `path/to/helper_utils.ts` - Relevant utility functions
-
-### Documentation & References
-- Internal: Links to internal documentation or wikis
-- External: Links to relevant external resources
+- `path/to/similar_component.ts:123` - Similar component/module
 
 ## Technical Considerations
-
-This section will be populated by the task-decomposition-expert agent with:
 
 - **Technologies/Frameworks**: [Relevant tech stack]
 - **Design Patterns**: [Recommended patterns]
 - **Architecture**: [Architectural approach]
 - **Testing Strategy**: [How to test]
-- **Performance**: [Performance considerations]
-- **Security**: [Security considerations]
 
 ## Dependencies
 
-This section will be populated by the task-decomposition-expert agent with:
-
 - **External Dependencies**: [Third-party libraries, services, APIs]
 - **Internal Dependencies**: [Existing code, modules, systems]
-- **Team Dependencies**: [Other team members or teams]
-- **Blocking Issues**: [Issues that must be resolved first]
 
 ## Success Criteria
 
-This section will be populated by the task-decomposition-expert agent with measurable success criteria:
-
-- [ ] All subtasks are completed
-- [ ] All acceptance criteria are met
-- [ ] Tests are written and passing
+- [ ] All subtasks completed
+- [ ] All acceptance criteria met
+- [ ] Tests written and passing
 - [ ] Code follows project standards
-- [ ] Documentation is updated
-- [ ] Code review is completed
-- [ ] [Additional criteria specific to this task]
 
 ## Risks and Mitigation
 
-This section will be populated by the task-decomposition-expert agent with:
-
-| Risk | Impact | Probability | Mitigation Strategy |
-|------|--------|-------------|---------------------|
-| [Risk 1] | [High/Med/Low] | [High/Med/Low] | [How to mitigate] |
-| [Risk 2] | [High/Med/Low] | [High/Med/Low] | [How to mitigate] |
-
-## Estimated Effort
-
-- **Complexity**: [Low/Medium/High]
-- **Total Effort**: [Time estimate]
-- **Subtask Breakdown**:
-  - Subtask 1: [Estimate]
-  - Subtask 2: [Estimate]
-  - Total: [Sum]
+| Risk | Impact | Mitigation Strategy |
+|------|--------|---------------------|
+| [Risk 1] | [High/Med/Low] | [How to mitigate] |
 
 ## Related Context
 
 - **Session Context**: `{{session_context_path}}`
 - **Working Directory**: `{{working_directory}}`
-- **Related Issues**: [GitHub issue links if applicable]
-- **Related PRs**: [GitHub PR links if applicable]
-
-## Notes
-
-Additional notes and considerations will be added here by the task-decomposition-expert agent.
 
 ---
 
 **Generated by**: plan-task command
-**Agent**: task-decomposition-expert
-**Workflow**: Agent-First Task Planning
