@@ -269,6 +269,107 @@ Coverage goals:
 | Testing framework code | Only test your code |
 | No arrange-act-assert structure | Follow AAA pattern |
 | Brittle tests (break on refactor) | Test interface, not implementation |
+| Conditionals in tests (if/else, switch) | Write separate tests for each case |
+
+## NO CONDITIONALS IN TESTS (CRITICAL)
+
+**Tests must NOT contain conditional logic (if/else, switch, ternary, loops with conditions).**
+
+### Why Conditionals Are Banned
+
+1. **Hidden failures**: Wrong branch executes silently, test "passes" but proves nothing
+2. **Non-deterministic**: Test behavior depends on runtime state
+3. **Hard to understand**: Reader can't tell which path was tested
+4. **Debugging nightmare**: When test fails, unclear which branch caused it
+5. **False confidence**: Test may never execute the assertion you think it does
+
+### ❌ BAD: Tests with Conditionals
+
+```typescript
+// ❌ NEVER DO THIS - conditional in test
+test('should handle user status', () => {
+  const user = getUser()
+
+  if (user.isActive) {
+    expect(user.canLogin()).toBe(true)
+  } else {
+    expect(user.canLogin()).toBe(false)
+  }
+})
+
+// ❌ NEVER DO THIS - ternary in assertion
+test('should return correct value', () => {
+  const result = calculate(input)
+  const expected = isSpecialCase ? 10 : 20
+  expect(result).toBe(expected)
+})
+
+// ❌ NEVER DO THIS - loop with conditional
+test('should process all items', () => {
+  for (const item of items) {
+    if (item.type === 'special') {
+      expect(process(item)).toBe('special-result')
+    }
+  }
+})
+```
+
+### ✅ GOOD: Separate Tests for Each Case
+
+```typescript
+// ✅ DO THIS - separate test for active user
+test('should allow login when user is active', () => {
+  const user = createUser({ isActive: true })
+
+  expect(user.canLogin()).toBe(true)
+})
+
+// ✅ DO THIS - separate test for inactive user
+test('should deny login when user is inactive', () => {
+  const user = createUser({ isActive: false })
+
+  expect(user.canLogin()).toBe(false)
+})
+
+// ✅ DO THIS - explicit test data, no conditionals
+test('should return 10 for special case', () => {
+  const result = calculate(specialInput)
+  expect(result).toBe(10)
+})
+
+test('should return 20 for normal case', () => {
+  const result = calculate(normalInput)
+  expect(result).toBe(20)
+})
+
+// ✅ DO THIS - test specific items explicitly
+test('should process special items correctly', () => {
+  const specialItem = createItem({ type: 'special' })
+
+  expect(process(specialItem)).toBe('special-result')
+})
+```
+
+### Parameterized Tests (Acceptable Alternative)
+
+If you have many similar cases, use parameterized tests instead of conditionals:
+
+```typescript
+// ✅ OK - parameterized test (no runtime conditionals)
+test.each([
+  { input: 0, expected: 'zero' },
+  { input: 1, expected: 'one' },
+  { input: -1, expected: 'negative' },
+])('should return $expected when input is $input', ({ input, expected }) => {
+  expect(classify(input)).toBe(expected)
+})
+```
+
+### The Rule
+
+> **If you're tempted to write `if` in a test, write two tests instead.**
+
+Each test should have exactly ONE path through it. The test name should tell you exactly what scenario is being tested, and the test body should prove that scenario works.
 
 ## TDD Workflow Integration
 
@@ -301,6 +402,7 @@ Ask yourself:
 5. **Am I testing implementation details or wiring?** → Skip it
 6. **Would this test pass even if the feature was broken?** → Skip it (it's testing configuration)
 7. **Would I write this test if I had to justify each one?** → Be honest
+8. **Does this test contain if/else/switch/ternary?** → Split into separate tests
 
 ## Real-World Impact
 

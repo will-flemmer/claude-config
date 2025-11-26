@@ -9,7 +9,7 @@ model: claude-opus-4-5-20251101
 
 **PURPOSE**: Perform deep, thorough code review on the specified PR using structured reasoning
 
-**THINKING DEPTH**: This review requires extensive analysis. Take your time. Use **35+ sequential thinking steps minimum** (10 for exploration + 25 for analysis). Branch and revise thoughts as needed. Do not rush. Code correctness is the highest priority, followed by maintainability.
+**THINKING DEPTH**: This review requires extensive analysis. Take your time. Use **36+ sequential thinking steps minimum** (10 for exploration + 26 for analysis). Branch and revise thoughts as needed. Do not rush. Code correctness is the highest priority, followed by maintainability.
 
 ---
 
@@ -115,9 +115,10 @@ Read({ file_path: "/path/to/modified/file3.ts" })
 
 ```javascript
 // Search for every modified function - IN PARALLEL
-Grep({ pattern: "functionName\\(", glob: "**/*.ts" })
-Grep({ pattern: "ClassName", glob: "**/*.ts" })
-Grep({ pattern: "from ['\"].*moduleName", glob: "**/*.ts" })
+// Use appropriate glob for project language (*.ts, *.py, *.go, *.rs, *.java, etc.)
+Grep({ pattern: "functionName\\(", glob: "**/*" })
+Grep({ pattern: "ClassName", glob: "**/*" })
+Grep({ pattern: "import.*moduleName", glob: "**/*" })
 ```
 
 **Exploration Step 4**: Trace Dependencies (What This Code Uses)
@@ -139,9 +140,10 @@ Read({ file_path: "/path/to/types.ts" })
 
 ```javascript
 // Search for patterns - IN PARALLEL
-Grep({ pattern: "similar_pattern", glob: "**/*.ts" })
-Grep({ pattern: "class.*extends.*BaseClass", glob: "**/*.ts" })
-Glob({ pattern: "**/*Service*.ts" })
+// Adjust globs for project language
+Grep({ pattern: "similar_pattern", glob: "**/*" })
+Grep({ pattern: "class.*extends.*BaseClass", glob: "**/*" })
+Glob({ pattern: "**/*Service*" })
 ```
 
 **Exploration Step 6**: Understand Module Structure
@@ -151,9 +153,10 @@ Glob({ pattern: "**/*Service*.ts" })
 
 ```javascript
 // Read module context - IN PARALLEL
-Read({ file_path: "/path/to/module/index.ts" })
+// Adjust paths for project structure and language
+Read({ file_path: "/path/to/module/index" })  // or __init__.py, mod.rs, etc.
 Read({ file_path: "/path/to/module/README.md" })
-Glob({ pattern: "src/[module]/**/*.ts" })
+Glob({ pattern: "src/[module]/**/*" })
 ```
 
 **Exploration Step 7**: Review Existing Tests
@@ -163,21 +166,23 @@ Glob({ pattern: "src/[module]/**/*.ts" })
 
 ```javascript
 // Find and read tests - IN PARALLEL
-Grep({ pattern: "describe.*[ModifiedClass]", glob: "**/*.spec.ts" })
-Grep({ pattern: "[modifiedFunction]", glob: "**/*.test.ts" })
-Read({ file_path: "/path/to/related.spec.ts" })
+// Adjust patterns for project's test conventions
+Grep({ pattern: "[ModifiedClass]", glob: "**/*test*" })
+Grep({ pattern: "[modifiedFunction]", glob: "**/*spec*" })
+Glob({ pattern: "**/test*/**/*" })  // or tests/, __tests__/, *_test.go, etc.
 ```
 
 **Exploration Step 8**: Review Project Standards
 - Read CLAUDE.md for coding standards
-- Check linting and TypeScript configuration
+- Check linting and language configuration
 - Look for architectural decision records
 
 ```javascript
 // Read config - IN PARALLEL
+// Adjust for project's configuration files
 Read({ file_path: "CLAUDE.md" })
-Read({ file_path: "tsconfig.json" })
-Read({ file_path: ".eslintrc.js" })
+Glob({ pattern: "*config*" })      // tsconfig, pyproject.toml, Cargo.toml, etc.
+Glob({ pattern: "*lint*" })        // .eslintrc, .ruff.toml, .golangci.yml, etc.
 Glob({ pattern: "**/ADR*.md" })
 ```
 
@@ -215,7 +220,7 @@ Before proceeding to Phase 2, confirm via sequential thinking:
 
 ### Thinking Configuration
 
-- **Minimum steps**: **25 thoughts** (increase `totalThoughts` if needed for larger PRs)
+- **Minimum steps**: **26 thoughts** (increase `totalThoughts` if needed for larger PRs)
 - **Use branching**: When exploring alternative interpretations, use `branchFromThought` and `branchId`
 - **Use revision**: When you reconsider a finding, use `isRevision: true` and `revisesThought`
 - **Extend freely**: Set `needsMoreThoughts: true` if you need to go deeper
@@ -228,7 +233,7 @@ Before proceeding to Phase 2, confirm via sequential thinking:
 mcp__sequential-thinking__sequentialthinking({
   thought: "Analyzing PR: [title]. Scope: [N] files, [+additions/-deletions]. Purpose: [from description]. I will conduct a thorough multi-pass review with emphasis on CODE CORRECTNESS as the highest priority, followed by MAINTAINABILITY and READABILITY. I'll examine logic deeply, trace execution paths, evaluate code quality for long-term maintenance, and verify edge case handling.",
   thoughtNumber: 1,
-  totalThoughts: 25,
+  totalThoughts: 26,
   nextThoughtNeeded: true
 })
 ```
@@ -316,9 +321,20 @@ This is the most important phase. Spend at least 6-7 thoughts here.
 - Are concurrent operations properly synchronized?
 - Are there deadlock risks?
 
-**Phase C: Security, Performance & Quality (Steps 11-15)**
+**Step 11**: API Design & Parameter Redundancy (IMPORTANT)
+- For each function/method, check parameters:
+  - Can any parameter be derived from another? (e.g., `func(user, user.id)` - why pass both?)
+  - If `param_a.related_field` gives you `param_b`, why require both?
+  - Are there parameters that are always used together? (should be a single object?)
+- Check for confusing APIs:
+  - Could a caller pass mismatched parameters? (e.g., `attendee` from event A, but `event` B)
+  - Is the parameter order intuitive?
+  - Are optional parameters at the end?
+- Flag redundant/confusing parameters as **MEDIUM** severity
 
-**Step 11**: Security Deep Dive (OWASP Top 10)
+**Phase C: Security, Performance & Quality (Steps 12-16)**
+
+**Step 12**: Security Deep Dive (OWASP Top 10)
 - **Injection**: SQL, command, LDAP, XPath, XSS
 - **Broken Auth**: Session management, credential handling
 - **Sensitive Data**: Encryption, logging, error messages
@@ -330,7 +346,7 @@ This is the most important phase. Spend at least 6-7 thoughts here.
 - **Vulnerable Components**: Known CVEs in dependencies
 - **Logging**: Sensitive data in logs, insufficient logging
 
-**Step 12**: Performance Analysis
+**Step 13**: Performance Analysis
 - Time complexity of new algorithms
 - Space complexity and memory usage
 - Database query efficiency (N+1, missing indexes)
@@ -338,7 +354,7 @@ This is the most important phase. Spend at least 6-7 thoughts here.
 - Blocking operations in async contexts
 - Resource pooling and limits
 
-**Step 13**: Testing Adequacy (CRITICAL - Use unit-testing skill)
+**Step 14**: Testing Adequacy (CRITICAL - Use unit-testing skill)
 
 **Coverage Analysis:**
 - Are critical paths tested?
@@ -385,11 +401,11 @@ test('should return false when password is incorrect', () => {
 - Tests that give false confidence (pass but don't verify behavior) → **HIGH**
 - Missing tests for critical behavior → **HIGH**
 
-**Phase D: Maintainability Deep Dive (Steps 14-19) - SECOND PRIORITY**
+**Phase D: Maintainability Deep Dive (Steps 15-20) - SECOND PRIORITY**
 
 This phase is critical for long-term code health. Spend 5-6 thoughts here.
 
-**Step 14**: Readability - Can You Understand It?
+**Step 15**: Readability - Can You Understand It?
 - Can a new developer understand this code in 5 minutes?
 - Is the code self-documenting through clear naming?
 - Are complex algorithms explained with comments?
@@ -397,7 +413,7 @@ This phase is critical for long-term code health. Spend 5-6 thoughts here.
 - Are there any "clever" tricks that obscure intent?
 - Would YOU understand this code 6 months from now?
 
-**Step 15**: Maintainability - Can You Change It?
+**Step 16**: Maintainability - Can You Change It?
 - How hard would it be to modify this code?
 - Are there hidden dependencies that make changes risky?
 - Is the code modular or is it a monolith?
@@ -405,7 +421,7 @@ This phase is critical for long-term code health. Spend 5-6 thoughts here.
 - Is there excessive coupling between components?
 - Could you safely refactor without breaking things?
 
-**Step 16**: Extendability - Can You Build On It?
+**Step 17**: Extendability - Can You Build On It?
 - How easy would it be to add new features?
 - Are extension points clear and documented?
 - Is the architecture open for extension, closed for modification?
@@ -413,14 +429,14 @@ This phase is critical for long-term code health. Spend 5-6 thoughts here.
 - Is the code too specific or appropriately generic?
 - Would adding a new use case require rewriting?
 
-**Step 17**: DRY & Code Duplication
+**Step 18**: DRY & Code Duplication
 - Is there copy-pasted code that should be abstracted?
 - Are there repeated patterns that could be unified?
 - Is there over-abstraction (DRY taken too far)?
 - Are utilities and helpers used appropriately?
 - Could shared logic be extracted?
 
-**Step 18**: Complexity & Simplicity
+**Step 19**: Complexity & Simplicity
 - Is the solution as simple as possible (but no simpler)?
 - Are there unnecessary abstractions?
 - Is there premature optimization?
@@ -428,7 +444,7 @@ This phase is critical for long-term code health. Spend 5-6 thoughts here.
 - Could this be done with fewer lines without sacrificing clarity?
 - Is cyclomatic complexity reasonable?
 
-**Step 19**: Project Standards & Consistency
+**Step 20**: Project Standards & Consistency
 - Follows CLAUDE.md conventions?
 - Consistent with existing codebase patterns?
 - Type safety maintained?
@@ -436,37 +452,37 @@ This phase is critical for long-term code health. Spend 5-6 thoughts here.
 - File organization matches project structure?
 - Import/export patterns consistent?
 
-**Phase E: Synthesis & Verdict (Steps 20-25)**
+**Phase E: Synthesis & Verdict (Steps 21-26)**
 
-**Step 20**: Cross-Cutting Concerns
+**Step 21**: Cross-Cutting Concerns
 - Revisit earlier findings with full context
 - Look for interactions between issues
 - Consider cumulative risk
 - Re-examine any code correctness concerns
 
-**Step 21**: Prioritization
+**Step 22**: Prioritization
 - Rank all findings by severity and effort
 - Identify blocking vs. non-blocking issues
 - Distinguish real risks from preferences
 - Ensure code correctness issues are properly weighted
 
-**Step 22**: Alternative Approaches
+**Step 23**: Alternative Approaches
 - Are there better ways to solve this problem?
 - What trade-offs did the author make?
 - Are those trade-offs reasonable?
 
-**Step 23**: Revision & Refinement
+**Step 24**: Revision & Refinement
 - Revisit any uncertain findings
 - Re-trace any complex logic one more time
 - Strengthen or weaken assessments based on full picture
 - Ensure consistency across findings
 
-**Step 24**: Maintainability Second Pass
+**Step 25**: Maintainability Second Pass
 - Review maintainability findings with full context
 - Consider: "Would I want to maintain this code?"
 - Final check on readability and extendability
 
-**Step 25**: Final Verdict
+**Step 26**: Final Verdict
 - Synthesize into clear recommendation
 - Ensure all critical issues (especially correctness & maintainability) are captured
 - Prepare constructive feedback
@@ -494,6 +510,39 @@ This phase is critical for long-term code health. Spend 5-6 thoughts here.
 
 ---
 
+### CRITICAL: DO NOT RATIONALIZE AWAY FINDINGS
+
+**When you identify a potential issue, REPORT IT. Do not assume the author had good reasons.**
+
+| ❌ DON'T DO THIS | ✅ DO THIS INSTEAD |
+|------------------|-------------------|
+| "This may be intentional for admin use cases" | Flag it and let the author explain |
+| "The author probably had a reason for this" | Report the concern, ask for clarification |
+| "This might be a design decision" | Flag as potential issue, note uncertainty |
+| "I could be wrong about this" | Report it anyway with your reasoning |
+
+**Your job is to identify concerns, not justify the author's choices.**
+
+**Examples of issues to FLAG, not rationalize:**
+
+1. **Redundant parameters**: If `func(user, user_id)` and `user.id` exists, flag it
+   - Could lead to bugs if caller passes mismatched values
+   - Makes API confusing
+   - Let author explain if intentional
+
+2. **Suspicious patterns**: If something looks wrong, flag it
+   - Don't assume "they must have tested this"
+   - Don't assume "there's probably a reason"
+   - Flag and let author respond
+
+3. **Potential edge cases**: If you're unsure if an edge case is handled
+   - Don't assume "they probably thought of this"
+   - Flag it and ask
+
+**The rule**: If you notice something that MIGHT be an issue, flag it. The cost of a false positive (author explains it's fine) is much lower than the cost of a false negative (bug ships to production).
+
+---
+
 ## Phase 3: Severity Classification
 
 Rate each finding from sequential analysis:
@@ -518,6 +567,15 @@ Rate each finding from sequential analysis:
 | Missing error handling | **HIGH** | Unhandled exceptions crash the app |
 | Infinite loop risk | **CRITICAL** | Will hang the application |
 | Type coercion bug | **MEDIUM/HIGH** | Subtle incorrect behavior |
+
+### API Design Severity
+
+| Issue | Severity | Rationale |
+|-------|----------|-----------|
+| Redundant parameters (can derive one from another) | **MEDIUM** | Confusing API, potential for mismatched values |
+| Mismatched parameter risk (e.g., `attendee` + `event` when `attendee.event` exists) | **MEDIUM** | Caller could pass inconsistent data |
+| Unintuitive parameter order | **LOW** | Confusing to use, error-prone |
+| Parameters that should be a single object | **LOW** | Verbose, harder to extend |
 
 ### Maintainability Severity (Second Priority)
 
@@ -561,35 +619,40 @@ Structure your review as:
 
 ### Code Correctness Issues (HIGHEST PRIORITY)
 [Logic errors, bugs, edge case failures - these BLOCK merge]
-- **[CRITICAL]** file.ts:42 - Logic error: [describe the bug and why it's wrong]
-- **[HIGH]** file.ts:78 - Edge case: [describe what input causes failure]
-- **[HIGH]** file.ts:120 - Race condition: [describe the concurrency issue]
+- **[CRITICAL]** file:42 - Logic error: [describe the bug and why it's wrong]
+- **[HIGH]** file:78 - Edge case: [describe what input causes failure]
+- **[HIGH]** file:120 - Race condition: [describe the concurrency issue]
 
 ### Security Issues
 [Security vulnerabilities - these BLOCK merge]
-- **[CRITICAL]** file.ts:55 - [Vulnerability type and impact]
+- **[CRITICAL]** file:55 - [Vulnerability type and impact]
+
+### API Design Issues
+[Confusing or error-prone interfaces]
+- **[MEDIUM]** file:42 - Redundant parameter: `func(attendee, event)` but `attendee.event` already provides event
+- **[MEDIUM]** file:88 - Mismatched risk: Caller could pass `attendee` from event A with `event` B
 
 ### Test Quality Issues
 [Flag any configuration tests, redundant tests, or missing behavior tests]
-- **[HIGH]** test.spec.ts:45 - Configuration test: Tests that `logger` is defined but not that logging actually works
-- **[MEDIUM]** test.spec.ts:78 - Redundant test: Same logic as line 52, just different input value
+- **[HIGH]** test_file:45 - Configuration test: Tests that `logger` is defined but not that logging actually works
+- **[MEDIUM]** test_file:78 - Redundant test: Same logic as line 52, just different input value
 - **[HIGH]** Missing: No tests for error handling in `processPayment()`
 
 ### Maintainability Issues (SECOND PRIORITY)
 [Readability, extendability, complexity concerns]
-- **[HIGH]** file.ts:150-200 - Readability: 50-line function with nested conditionals, hard to follow
-- **[MEDIUM]** file.ts:88 - DRY violation: Same logic repeated in `handleCreate()` and `handleUpdate()`
-- **[MEDIUM]** file.ts:220 - Extendability: Hardcoded list of types, adding new type requires code change
-- **[LOW]** file.ts:45 - Naming: Variable `d` should be `userData` for clarity
+- **[HIGH]** file:150-200 - Readability: 50-line function with nested conditionals, hard to follow
+- **[MEDIUM]** file:88 - DRY violation: Same logic repeated in `handleCreate()` and `handleUpdate()`
+- **[MEDIUM]** file:220 - Extendability: Hardcoded list of types, adding new type requires code change
+- **[LOW]** file:45 - Naming: Variable `d` should be `userData` for clarity
 
 ### Recommendations
 [MEDIUM severity items worth addressing]
-- **[MEDIUM]** file.ts:120 - [Issue and suggestion]
+- **[MEDIUM]** file:120 - [Issue and suggestion]
 
 ### Minor Suggestions
 [LOW/NIT items - optional improvements]
-- **[LOW]** file.ts:15 - [Suggestion]
-- **[NIT]** file.ts:88 - [Optional improvement]
+- **[LOW]** file:15 - [Suggestion]
+- **[NIT]** file:88 - [Optional improvement]
 
 ### Verdict
 - [ ] **Approve** - Ready to merge
