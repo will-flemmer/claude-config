@@ -160,8 +160,8 @@ Key question: "If this test passes, does it prove the feature works?"
 | Severity | Criteria | Action |
 |----------|----------|--------|
 | **CRITICAL** | Logic bug, security vuln, data loss, crash | **MUST fix** |
-| **HIGH** | Edge case failure, race condition, false-confidence tests | Should fix |
-| **MEDIUM** | Performance, redundant tests, API design issues | Consider fixing |
+| **HIGH** | Edge case failure, race condition, false-confidence tests, redundant tests, API design issues, readability issues, maintainability issues | Should fix |
+| **MEDIUM** | Performance | Consider fixing |
 | **LOW/NIT** | Style, minor improvements | Optional |
 
 ---
@@ -169,28 +169,38 @@ Key question: "If this test passes, does it prove the feature works?"
 ## Output Format
 
 ```markdown
-## PR Review: [PR Title]
+# PR Review
 
-**PR**: [URL] | **Author**: [name] | **Changes**: +[add]/-[del] in [N] files
+**PR**: [URL]
 
-### Summary
-[1-2 sentences: what it does + overall assessment]
+## CRITICAL
 
-### Blocking Issues (CRITICAL/HIGH)
-- **[CRITICAL]** file:42 - [Issue description]
-- **[HIGH]** file:78 - [Issue description]
+### Issue 1 - path/to/file:42
+<description of issue>
 
-### Recommendations (MEDIUM)
-- **[MEDIUM]** file:120 - [Issue and suggestion]
+### Issue 2 - path/to/file:78
+<description of issue>
 
-### Minor (LOW/NIT)
-- **[LOW]** file:15 - [Suggestion]
+## HIGH
 
-### Verdict
+### Issue 1 - path/to/file:120
+<description of issue>
+
+## MEDIUM
+
+### Issue 1 - path/to/file:55
+<description of issue>
+
+## LOW
+
+### Issue 1 - path/to/file:15
+<description of issue>
+
+## Verdict
 - [ ] **Approve** | [ ] **Request Changes** | [ ] **Comment**
 ```
 
-**Guidelines**: Be specific (file:line), explain WHY, suggest fixes, skip linter-catchable issues.
+**Guidelines**: Be specific (file:line), explain WHY, suggest fixes, skip linter-catchable issues. Omit empty severity sections.
 
 ---
 
