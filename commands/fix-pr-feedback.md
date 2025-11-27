@@ -1,7 +1,7 @@
 ---
 description: Address and fix feedback/review comments on a GitHub PR
 argument-hint: <pr-url>
-allowed-tools: Read, Write, Edit, Bash(gh:*), Bash(git:*), Grep, Glob, mcp__memory__search_nodes, mcp__memory__open_nodes, mcp__sequential-thinking__sequentialthinking
+allowed-tools: Read, Write, Edit, Bash(gh:*), Bash(git:*), Grep, Glob, mcp__sequential-thinking__sequentialthinking
 model: claude-opus-4-5-20251101
 ---
 

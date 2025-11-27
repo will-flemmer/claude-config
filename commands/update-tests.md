@@ -13,25 +13,19 @@ Update or create unit tests following TDD principles with focused, meaningful co
 
 **BEFORE doing ANYTHING else, invoke these skills:**
 
-1. **First request in session?**
-   ```
-   Skill({ skill: "query-decision" })
-   ```
-   ↳ Automatically decides if memory query is needed
-
-2. **Working with unit tests?**
+1. **Working with unit tests?**
    ```
    Skill({ skill: "unit-testing" })
    ```
    ↳ Applies TDD principles, filters redundant tests, tests behavior not configuration
 
-3. **About to read/search multiple files?**
+2. **About to read/search multiple files?**
    ```
    Skill({ skill: "parallel-execution-patterns" })
    ```
    ↳ Executes reads/searches in parallel (5-8x faster)
 
-4. **Before claiming tests are complete:**
+3. **Before claiming tests are complete:**
    ```
    Skill({ skill: "verification-before-completion" })
    ```
@@ -57,37 +51,6 @@ Update or create unit tests following TDD principles with focused, meaningful co
 ## Core Instructions
 
 You MUST use the `@unit-testing` skill for all test generation and updates.
-
-### Step 0: Query Testing Memory
-
-**BEFORE writing tests**, query persistent memory for testing knowledge:
-
-```javascript
-// Query in parallel for testing-specific patterns
-const testPatterns = await mcp__memory__search_nodes({
-  query: "[technology/framework] testing patterns"
-});
-
-const testMistakes = await mcp__memory__search_nodes({
-  query: "testing failed approach"
-});
-
-const mockPatterns = await mcp__memory__search_nodes({
-  query: "[technology] mocking patterns"
-});
-
-const edgeCases = await mcp__memory__search_nodes({
-  query: "testing edge cases [domain]"
-});
-```
-
-**Apply findings:**
-- Use proven test patterns from memory
-- Avoid mistakes documented in FailedApproaches
-- Follow established mocking strategies
-- Include edge cases that were previously missed
-
-**If memory not initialized:** Skip this step silently (first-time usage is okay).
 
 ### Step 1: Identify Changes
 
@@ -251,39 +214,3 @@ The command works with any test framework. Always:
 - Mock external dependencies
 - Clear, descriptive test names
 - Focus on quality over quantity
-
-## Storing Testing Knowledge (Manual)
-
-After a successful testing session, you can manually store learnings:
-
-**What to store:**
-- New testing patterns discovered
-- Mocking strategies that worked well
-- Edge cases that caught real bugs
-- Testing mistakes that were made
-- Framework-specific gotchas
-
-**Example storage:**
-```javascript
-await mcp__memory__create_entities({
-  entities: [{
-    name: "Pattern:Testing:[PatternName]",
-    entityType: "Pattern",
-    observations: [
-      "Pattern: [testing pattern description]",
-      "Framework: [Jest/RSpec/etc]",
-      "Used for: [what it tests]",
-      "Example: [code snippet]",
-      "Gotcha: [pitfall to avoid]"
-    ]
-  }]
-});
-```
-
-**When to store:**
-- Found a better way to test something
-- Discovered a common edge case
-- Figured out a tricky mocking scenario
-- Avoided a testing anti-pattern
-
-Just ask: "Store this testing pattern to memory: [description]"

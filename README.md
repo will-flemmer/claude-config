@@ -1,11 +1,11 @@
 # Claude Code Configuration
 
-Personal Claude Code configuration with custom commands, skills, and persistent memory system.
+Personal Claude Code configuration with custom commands and skills.
 
 ## Quick Start
 
 ```bash
-# 1. Install MCP servers (sequential-thinking, memory, puppeteer)
+# 1. Install MCP servers (sequential-thinking, puppeteer)
 ./install-mcp-servers.sh
 
 # 2. Sync configuration to ~/.claude/
@@ -20,31 +20,18 @@ cp ~/.claude/.mcp.json .
 
 # 4. Start Claude in your project
 claude
-
-# 5. Initialize memory (in Claude Code)
-/init-memory
 ```
 
 ## What's Included
 
 **Commands:**
-- `/plan-task` - Plan tasks with memory context
-- `/implement-plan` - TDD implementation with automatic learning storage
-- `/init-memory` - Initialize persistent memory system
+- `/plan-task` - Plan tasks with codebase analysis
+- `/implement-plan` - TDD implementation
 - `/pr-checks` - Monitor PR checks
 
 **Features:**
-- Persistent memory across sessions (remembers decisions, patterns, bugs)
 - Skills for workflow automation (TDD, verification, parallel execution)
 - Parallel execution optimization
-
-## Daily Usage
-
-```bash
-# Memory is automatic - just use your commands
-/plan-task "Add feature"      # Queries past context
-/implement-plan tasks/...      # Stores learnings
-```
 
 ## Setup MCP in New Projects
 

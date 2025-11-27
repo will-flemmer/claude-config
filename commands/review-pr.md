@@ -1,7 +1,7 @@
 ---
 description: Review a GitHub PR for code quality, security, and best practices
 argument-hint: <pr-url>
-allowed-tools: Read, Bash(gh:*), Grep, Glob, mcp__memory__search_nodes, mcp__memory__open_nodes, mcp__sequential-thinking__sequentialthinking
+allowed-tools: Read, Bash(gh:*), Grep, Glob, mcp__sequential-thinking__sequentialthinking
 model: claude-opus-4-5-20251101
 ---
 
@@ -44,12 +44,6 @@ gh pr diff "$ARGUMENTS"
 
 # Get PR comments/conversation
 gh pr view "$ARGUMENTS" --json comments,reviews --jq '.comments[], .reviews[]'
-```
-
-Also query memory in parallel (if initialized):
-```javascript
-mcp__memory__search_nodes({ query: "[technology from PR] review patterns" })
-mcp__memory__search_nodes({ query: "security vulnerabilities" })
 ```
 
 ---

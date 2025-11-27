@@ -9,23 +9,11 @@
 
 **BEFORE doing ANYTHING else, invoke these skills:**
 
-1. **First request in session?**
-   ```
-   Skill({ skill: "query-decision" })
-   ```
-   ↳ Automatically decides if memory query is needed
-
-2. **About to read/search 2+ files?**
+1. **About to read/search 2+ files?**
    ```
    Skill({ skill: "parallel-execution-patterns" })
    ```
    ↳ Executes reads/searches in parallel (5-8x faster)
-
-3. **Planning a feature?**
-   ```
-   Skill({ skill: "memory-driven-planning" })
-   ```
-   ↳ Queries memory for patterns, failures, decisions
 
 **⚠️ STOP - Did you invoke the skills above? If not, DO IT NOW before continuing!**
 
@@ -132,42 +120,7 @@ The answers enrich the task context and ensure accurate planning.
 - **Analyze task**: Extract objective, constraints, technologies
 - **Ask clarifying questions**: 3-5 targeted questions (see Clarification Questions section)
 
-### 2. Query Development Memory (Parallel Execution - READ from memory)
-**IMPORTANT**: Query persistent memory for relevant past context before planning.
-
-**Query in parallel** (single message with multiple MCP memory calls):
-```javascript
-// Search for similar past tasks
-const similarTasks = await mcp__memory__search_nodes({
-  query: "[task description keywords]"
-});
-
-// Get architectural constraints
-const architecture = await mcp__memory__open_nodes({
-  names: ["ProjectArchitecture"]
-});
-
-// Find relevant patterns
-const patterns = await mcp__memory__search_nodes({
-  query: "[technology/domain] patterns"
-});
-
-// Check for past failures
-const failures = await mcp__memory__search_nodes({
-  query: "[context] failed approach"
-});
-```
-
-**Add to session context**:
-Create "Relevant Past Context" section with:
-- Similar tasks and their outcomes
-- Architectural decisions to respect
-- Proven patterns to follow
-- Failed approaches to avoid
-
-**If memory not initialized**: Skip this step silently (first-time usage is okay).
-
-### 3. Codebase Discovery (Use Parallel Execution)
+### 2. Codebase Discovery (Use Parallel Execution)
 **Find relevant files**:
 ```bash
 find . -type f -name "*.ts" -o -name "*.js" | head -20
@@ -179,123 +132,7 @@ grep -r "pattern" --include="*.ts"
 
 **Update context**: Add discovered architecture to `Technical Decisions`
 
-**Then proceed to Step 3.5** to store discovered patterns to memory.
-
-### 3.5. Store Discovered Patterns to Memory
-**IMPORTANT**: After codebase discovery, store valuable patterns to persistent memory for future planning sessions.
-
-**Check for duplicates first**:
-```javascript
-// Query memory to avoid duplicates
-const existingPatterns = await mcp__memory__search_nodes({
-  query: "[pattern name or technology]"
-});
-```
-
-**Store NEW insights only** (execute in parallel):
-
-**Code Patterns Discovered**:
-```javascript
-await mcp__memory__create_entities({
-  entities: [{
-    name: "Pattern:[Technology]:[PatternName]",
-    entityType: "Pattern",
-    observations: [
-      "Pattern: [description of pattern]",
-      "Found in: [file paths]",
-      "Used for: [purpose]",
-      "Example: [brief code snippet or reference]",
-      "Date: YYYY-MM-DD"
-    ]
-  }]
-});
-
-// Link to pattern registry
-await mcp__memory__create_relations({
-  relations: [{
-    from: "Pattern:[Technology]:[PatternName]",
-    to: "CodePatterns",
-    relationType: "stored_in"
-  }]
-});
-```
-
-**Architecture Insights**:
-```javascript
-await mcp__memory__add_observations({
-  observations: [{
-    entityName: "ProjectArchitecture",
-    contents: [
-      "Module organization: [discovered structure]",
-      "Layer separation: [how layers are organized]",
-      "Design pattern: [architectural patterns found]",
-      "Date: YYYY-MM-DD"
-    ]
-  }]
-});
-```
-
-**Testing Patterns**:
-```javascript
-await mcp__memory__create_entities({
-  entities: [{
-    name: "Pattern:Testing:[Framework]:[Pattern]",
-    entityType: "Pattern",
-    observations: [
-      "Framework: [Jest/Vitest/etc]",
-      "Pattern: [testing approach]",
-      "Location: [test file conventions]",
-      "Mocking: [mocking strategy]",
-      "Example: [reference to test file]",
-      "Date: YYYY-MM-DD"
-    ]
-  }]
-});
-```
-
-**Integration Patterns**:
-```javascript
-await mcp__memory__create_entities({
-  entities: [{
-    name: "Pattern:Integration:[ServiceName]",
-    entityType: "Pattern",
-    observations: [
-      "Service: [external service name]",
-      "Integration: [how it's integrated]",
-      "Error handling: [approach]",
-      "Location: [file paths]",
-      "Pattern: [specific pattern used]",
-      "Date: YYYY-MM-DD"
-    ]
-  }]
-});
-```
-
-**When to Store**:
-- ✅ NEW patterns not already in memory
-- ✅ Reusable architectural insights
-- ✅ Non-obvious design decisions
-- ✅ Testing conventions and strategies
-- ✅ Integration approaches
-
-**When NOT to Store**:
-- ❌ Duplicates (already in memory)
-- ❌ Task-specific implementation details
-- ❌ Temporary planning notes
-- ❌ Trivial or obvious patterns
-
-**Update session context** after storage:
-```markdown
-## Memory Storage
-- Stored [count] code patterns
-- Stored [count] architecture insights
-- Stored [count] testing patterns
-- Stored [count] integration patterns
-```
-
-**If memory not initialized**: Silently skip this step (optional feature).
-
-### 4. API & Interface Discovery
+### 3. API & Interface Discovery
 
 **CRITICAL**: Before suggesting ANY API usage, verify it actually exists. Plans that suggest non-existent APIs are worse than no plan.
 
@@ -337,7 +174,7 @@ Grep({ pattern: "export (function|class|const)", path: "src/" })
 - ❌ NEVER suggest methods based on assumed naming conventions
 - ❌ NEVER assume a utility exists just because it would be convenient
 
-### 5. Validation Phase (Use Explore Agent)
+### 4. Validation Phase (Use Explore Agent)
 
 **MANDATORY**: After drafting implementation approach, validate technical assumptions.
 
@@ -386,7 +223,7 @@ Task({
 | Redis cache available | No redis config found | Ask user about infrastructure |
 ```
 
-### 6-8. Analysis Phase (Use Sequential Thinking)
+### 5-7. Analysis Phase (Use Sequential Thinking)
 
 **Use sequential thinking for task decomposition and analysis.**
 
@@ -659,12 +496,11 @@ rm tasks/session_context_<old_id>.md
 
 1. **Clarifying questions** - ask 3-5 targeted questions if ANY triggers apply (see "When to Ask" section)
 2. **Context file creation** - always create session context files before starting analysis
-3. **Memory querying** - query persistent memory for relevant past context (if initialized)
-4. **Parallel operations** - always use parallel tool calls for independent operations (memory queries, documentation reading, pattern searches)
-5. **API discovery** - verify all APIs/modules exist before suggesting their use
-6. **Validation phase** - use Explore agent to validate technical assumptions
-7. **Context updates** - update both session context and task documentation files with findings
-8. **Pattern discovery** - include links to similar code patterns found in the codebase
+3. **Parallel operations** - always use parallel tool calls for independent operations (documentation reading, pattern searches)
+4. **API discovery** - verify all APIs/modules exist before suggesting their use
+5. **Validation phase** - use Explore agent to validate technical assumptions
+6. **Context updates** - update both session context and task documentation files with findings
+7. **Pattern discovery** - include links to similar code patterns found in the codebase
 
 ### Compliance Checklist
 
@@ -674,12 +510,6 @@ When executing this command:
 - [ ] Clarifying questions asked if ANY "When to Ask" triggers apply
 - [ ] Session context file is created with unique session ID
 - [ ] Task documentation file is initialized
-
-**Memory Integration**
-- [ ] Memory system queried for relevant past context (if initialized)
-- [ ] Memory queries executed IN PARALLEL (single message, multiple MCP memory calls)
-- [ ] Discovered patterns stored to memory after codebase discovery (if initialized)
-- [ ] Checked for duplicate patterns before storing to memory
 
 **Discovery & Parallel Execution**
 - [ ] Documentation files read IN PARALLEL (single message, multiple Read calls)
@@ -696,9 +526,7 @@ When executing this command:
 
 **Output Quality**
 - [ ] Both session context and task documentation files updated with findings
-- [ ] Relevant past context from memory included in session context
 - [ ] Existing code patterns and examples included in task documentation
-- [ ] Session context updated with count of patterns stored to memory
 - [ ] All implementation steps reference verified existing code or explicitly marked new code
 
 This command delivers practical value for breaking down complex work into manageable, actionable components with maximum performance through parallel execution and **verified technical foundations**.
