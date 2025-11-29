@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PR Review - {{PR_TITLE}}</title>
+    <style>
+        :root {
+            --critical-bg: #fef2f2;
+            --critical-border: #ef4444;
+            --critical-text: #991b1b;
+            --high-bg: #fff7ed;
+            --high-border: #f97316;
+            --high-text: #9a3412;
+            --medium-bg: #fefce8;
+            --medium-border: #eab308;
+            --medium-text: #854d0e;
+            --low-bg: #f0fdf4;
+            --low-border: #22c55e;
+            --low-text: #166534;
+            --card-bg: #ffffff;
+            --body-bg: #f8fafc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--body-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .pr-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .pr-meta a {
+            color: white;
+            text-decoration: none;
+            border-bottom: 1px dashed rgba(255,255,255,0.5);
+        }
+
+        .pr-meta a:hover {
+            border-bottom-style: solid;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card .count {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .stat-card .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        .stat-critical .count { color: var(--critical-border); }
+        .stat-high .count { color: var(--high-border); }
+        .stat-medium .count { color: var(--medium-border); }
+        .stat-low .count { color: var(--low-border); }
+
+        .severity-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .severity-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px 8px 0 0;
+            font-weight: 600;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .severity-critical .severity-header {
+            background: var(--critical-bg);
+            color: var(--critical-text);
+            border: 1px solid var(--critical-border);
+            border-bottom: none;
+        }
+
+        .severity-high .severity-header {
+            background: var(--high-bg);
+            color: var(--high-text);
+            border: 1px solid var(--high-border);
+            border-bottom: none;
+        }
+
+        .severity-medium .severity-header {
+            background: var(--medium-bg);
+            color: var(--medium-text);
+            border: 1px solid var(--medium-border);
+            border-bottom: none;
+        }
+
+        .severity-low .severity-header {
+            background: var(--low-bg);
+            color: var(--low-text);
+            border: 1px solid var(--low-border);
+            border-bottom: none;
+        }
+
+        .severity-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .issues-list {
+            background: var(--card-bg);
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+        }
+
+        .severity-critical .issues-list {
+            border: 1px solid var(--critical-border);
+            border-top: none;
+        }
+
+        .severity-high .issues-list {
+            border: 1px solid var(--high-border);
+            border-top: none;
+        }
+
+        .severity-medium .issues-list {
+            border: 1px solid var(--medium-border);
+            border-top: none;
+        }
+
+        .severity-low .issues-list {
+            border: 1px solid var(--low-border);
+            border-top: none;
+        }
+
+        .issue {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .issue:last-child {
+            border-bottom: none;
+        }
+
+        .issue-location {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .issue-location .file-icon {
+            width: 14px;
+            height: 14px;
+            opacity: 0.7;
+        }
+
+        .issue-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .issue-description {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+        }
+
+        .issue-description code {
+            background: #f1f5f9;
+            padding: 0.125rem 0.375rem;
+            border-radius: 4px;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+            font-size: 0.8125rem;
+        }
+
+        .issue-description pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 0.75rem 0;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+            font-size: 0.8125rem;
+            line-height: 1.5;
+        }
+
+        .verdict {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .verdict h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .verdict-options {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .verdict-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .verdict-option.approve {
+            background: var(--low-bg);
+            color: var(--low-text);
+            border: 2px solid var(--low-border);
+        }
+
+        .verdict-option.changes {
+            background: var(--high-bg);
+            color: var(--high-text);
+            border: 2px solid var(--high-border);
+        }
+
+        .verdict-option.selected {
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+            transform: scale(1.02);
+        }
+
+        .verdict-option:not(.selected) {
+            background: #f1f5f9;
+            color: #94a3b8;
+            border: 2px solid #e2e8f0;
+            opacity: 0.6;
+        }
+
+        .summary {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+        }
+
+        .no-issues {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .no-issues-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.8125rem;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem;
+            }
+
+            header {
+                padding: 1.5rem;
+            }
+
+            header h1 {
+                font-size: 1.25rem;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>{{PR_TITLE}}</h1>
+            <div class="pr-meta">
+                <span><a href="{{PR_URL}}" target="_blank">{{PR_URL}}</a></span>
+                <span>{{PR_AUTHOR}}</span>
+                <span>{{PR_BRANCH}}</span>
+            </div>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card stat-critical">
+                <div class="count">{{CRITICAL_COUNT}}</div>
+                <div class="label">Critical</div>
+            </div>
+            <div class="stat-card stat-high">
+                <div class="count">{{HIGH_COUNT}}</div>
+                <div class="label">High</div>
+            </div>
+            <div class="stat-card stat-medium">
+                <div class="count">{{MEDIUM_COUNT}}</div>
+                <div class="label">Medium</div>
+            </div>
+            <div class="stat-card stat-low">
+                <div class="count">{{LOW_COUNT}}</div>
+                <div class="label">Low</div>
+            </div>
+        </div>
+
+        {{CRITICAL_SECTION}}
+
+        {{HIGH_SECTION}}
+
+        {{MEDIUM_SECTION}}
+
+        {{LOW_SECTION}}
+
+        <div class="verdict">
+            <h2>
+                <svg class="severity-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                Verdict
+            </h2>
+            <div class="verdict-options">
+                <div class="verdict-option approve {{APPROVE_SELECTED}}">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    Approve
+                </div>
+                <div class="verdict-option changes {{CHANGES_SELECTED}}">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    Request Changes
+                </div>
+            </div>
+            <div class="summary">
+                {{VERDICT_SUMMARY}}
+            </div>
+        </div>
+
+        <footer>
+            Generated by Claude Code PR Review
+        </footer>
+    </div>
+</body>
+</html>

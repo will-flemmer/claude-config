@@ -1,7 +1,7 @@
 ---
 description: Review a GitHub PR for code quality, security, and best practices
 argument-hint: <pr-url>
-allowed-tools: Read, Bash(gh:*), Grep, Glob, mcp__sequential-thinking__sequentialthinking
+allowed-tools: Read, Write, Bash(gh:*), Bash(open:*), Grep, Glob, mcp__sequential-thinking__sequentialthinking
 model: claude-opus-4-5-20251101
 ---
 
@@ -166,44 +166,93 @@ Key question: "If this test passes, does it prove the feature works?"
 
 ---
 
-## Output Format
+## Output Format: HTML Report
 
-```markdown
-# PR Review
+Generate a styled HTML report using the template at `~/.claude/commands/review-pr/template.html`.
 
-**PR**: [URL]
+### Step 1: Read the HTML Template
 
-## CRITICAL
-
-### Issue 1 - path/to/file:42
-<description of issue>
-
-### Issue 2 - path/to/file:78
-<description of issue>
-
-## HIGH
-
-### Issue 1 - path/to/file:120
-<description of issue>
-
-## MEDIUM
-
-### Issue 1 - path/to/file:55
-<description of issue>
-
-## LOW
-
-### Issue 1 - path/to/file:15
-<description of issue>
-
-## Verdict
-- [ ] **Approve** | [ ] **Request Changes** | [ ] **Comment**
+```bash
+cat ~/.claude/commands/review-pr/template.html
 ```
 
-**Guidelines**: Be specific (file:line), explain WHY, suggest fixes, skip linter-catchable issues. Omit empty severity sections.
+### Step 2: Generate HTML Content
+
+Replace placeholders with actual review data:
+
+| Placeholder | Value |
+|-------------|-------|
+| `{{PR_TITLE}}` | PR title from metadata |
+| `{{PR_URL}}` | Full PR URL |
+| `{{PR_AUTHOR}}` | Author login |
+| `{{PR_BRANCH}}` | `headRefName` -> `baseRefName` |
+| `{{CRITICAL_COUNT}}` | Number of critical issues |
+| `{{HIGH_COUNT}}` | Number of high issues |
+| `{{MEDIUM_COUNT}}` | Number of medium issues |
+| `{{LOW_COUNT}}` | Number of low/nit issues |
+| `{{CRITICAL_SECTION}}` | HTML for critical issues (see below) |
+| `{{HIGH_SECTION}}` | HTML for high issues |
+| `{{MEDIUM_SECTION}}` | HTML for medium issues |
+| `{{LOW_SECTION}}` | HTML for low issues |
+| `{{APPROVE_SELECTED}}` | `selected` if approving, else empty |
+| `{{CHANGES_SELECTED}}` | `selected` if requesting changes, else empty |
+| `{{VERDICT_SUMMARY}}` | Brief explanation of verdict |
+
+### Section HTML Template
+
+For each severity level with issues, generate:
+
+```html
+<div class="severity-section severity-{level}">
+    <div class="severity-header">
+        <svg class="severity-icon" viewBox="0 0 20 20" fill="currentColor">
+            <!-- Use appropriate icon -->
+        </svg>
+        {LEVEL} ({count})
+    </div>
+    <div class="issues-list">
+        <!-- Issues go here -->
+    </div>
+</div>
+```
+
+### Issue HTML Template
+
+For each issue:
+
+```html
+<div class="issue">
+    <div class="issue-location">
+        <svg class="file-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+        </svg>
+        {file_path}:{line_number}
+    </div>
+    <div class="issue-title">{Issue Title}</div>
+    <div class="issue-description">
+        {Detailed description with <code>inline code</code> and:}
+        <pre>{code blocks if needed}</pre>
+    </div>
+</div>
+```
+
+### Step 3: Save and Open Report
+
+```bash
+# Save to temp file with timestamp
+output_file="/tmp/pr-review-$(date +%Y%m%d-%H%M%S).html"
+```
+
+Use the Write tool to save the generated HTML to `$output_file`, then:
+
+```bash
+open "$output_file"  # Opens in default browser
+```
+
+**Guidelines**: Be specific (file:line), explain WHY, suggest fixes, skip linter-catchable issues. Omit empty severity sections entirely (don't show section header if no issues).
 
 ---
 
 ## Final Step
 
-Ask: Post as PR comment (`gh pr comment`) or keep here?
+After opening the HTML report, ask: Post as PR comment (`gh pr comment` - use markdown format for GitHub) or keep the HTML report only?
