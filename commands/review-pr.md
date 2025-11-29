@@ -11,6 +11,8 @@ model: claude-opus-4-5-20251101
 
 **THINKING DEPTH**: Use **15-18 sequential thinking steps** (5 exploration + 10-13 analysis). Branch/revise as needed. Priority: (1) Correctness, (2) Maintainability, (3) Security.
 
+> ⚠️ **CRITICAL**: You MUST use `mcp__sequential-thinking__sequentialthinking` throughout this review. Call it at the start of Phase 2 and Phase 3 as instructed. Do NOT skip sequential thinking.
+
 ---
 
 ## Input
@@ -37,9 +39,12 @@ gh pr view "$ARGUMENTS" --json comments,reviews --jq '.comments[], .reviews[]'
 gh pr checkout "$ARGUMENTS"
 ```
 
-**Use sequential thinking with parallel tool calls within each step.**
+### MANDATORY: Start Sequential Thinking NOW
+
+**You MUST call `mcp__sequential-thinking__sequentialthinking` before proceeding.** Do not skip this step.
 
 ```javascript
+// EXECUTE THIS TOOL CALL:
 mcp__sequential-thinking__sequentialthinking({
   thought: "Beginning exploration. Modified files: [list]. Will explore: files, call sites, dependencies, tests, standards.",
   thoughtNumber: 1,
@@ -47,6 +52,8 @@ mcp__sequential-thinking__sequentialthinking({
   nextThoughtNeeded: true
 })
 ```
+
+**Continue using sequential thinking for ALL exploration steps below.** Each step = 1 thought.
 
 ### Exploration Steps
 
@@ -79,12 +86,17 @@ mcp__sequential-thinking__sequentialthinking({
 
 ## Phase 3: Analysis (10-13 thoughts)
 
-**Invoke unit-testing skill before analyzing tests:**
+### MANDATORY: Invoke Skills and Continue Sequential Thinking
+
+**Step 1:** Invoke the unit-testing skill:
 ```
 Skill({ skill: "unit-testing" })
 ```
 
+**Step 2:** Start a NEW sequential thinking chain for analysis. **You MUST call this:**
+
 ```javascript
+// EXECUTE THIS TOOL CALL:
 mcp__sequential-thinking__sequentialthinking({
   thought: "Analyzing PR: [title]. [N] files, +[add]/-[del]. Priority: correctness → maintainability → security.",
   thoughtNumber: 1,
@@ -92,6 +104,8 @@ mcp__sequential-thinking__sequentialthinking({
   nextThoughtNeeded: true
 })
 ```
+
+**Continue sequential thinking through ALL analysis steps.** Each step = 1+ thoughts.
 
 ### Analysis Steps
 

@@ -1,6 +1,9 @@
 {
   "model": "claude-opus-4-5-20251101",
   "alwaysThinkingEnabled": false,
+  "permissions": {
+    "defaultMode": "acceptEdits"
+  },
   "hooks": {
     "Notification": [
       {
@@ -8,16 +11,6 @@
           {
             "type": "command",
             "command": "curl -s -d 'Claude Needs Input' ntfy.sh/claude-code-823ef924-edc6-47d9-b075-e4a54a805b65"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "curl -s -d 'Claude Code finished' ntfy.sh/claude-code-823ef924-edc6-47d9-b075-e4a54a805b65"
           }
         ]
       }

@@ -40,9 +40,11 @@ Implements planned development tasks following TDD methodology. Reads planning d
 **MANDATORY**: Always create session context files for tracking.
 
 **Context File Creation**:
-1. Generate session ID: `implement_$(date +%Y%m%d_%H%M%S)_$RANDOM`
+1. Generate session ID: `implement_YYYYMMDD_HHMMSS` (use today's date from `<env>` + current time estimate, e.g., `implement_20251129_143022`)
 2. Create `tasks/session_context_<session_id>.md` immediately
 3. Initialize with objective, subtask tracking, TDD phase tracking
+
+> **Note**: Generate the session ID directly from the date shown in `<env>` section. No shell command needed.
 
 ## Usage
 
@@ -76,7 +78,7 @@ Reference in workflow steps as: `(update context: section_name)`
 - (update context: current state)
 
 **2. Create Session Context** (Write tool)
-- Generate session ID: `implement_$(date +%Y%m%d_%H%M%S)_$RANDOM`
+- Generate session ID: `implement_YYYYMMDD_HHMMSS` (from `<env>` date)
 - Create `tasks/session_context_{{session_id}}.md`
 - Initialize: meta info, objective, subtask tracking, TDD phase tracking
 - (update context: current state)
@@ -246,7 +248,7 @@ implement-plan tasks/complex_feature_20251010_120000_11111.md
 
 All file paths must be absolute for reliability:
 - **Plan File**: Provided as argument (e.g., `/Users/williamflemmer/Documents/claude-config/tasks/user_auth_20251010_143022_12345.md`)
-- **Session Context**: Auto-generated at `/Users/williamflemmer/Documents/claude-config/tasks/session_context_implement_<timestamp>_<random>.md`
+- **Session Context**: Auto-generated at `tasks/session_context_implement_<YYYYMMDD_HHMMSS>.md`
 
 ## Requirements
 

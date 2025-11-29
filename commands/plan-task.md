@@ -5,6 +5,18 @@
 
 ---
 
+## 🚨 CRITICAL: DO NOT ENTER PLAN MODE 🚨
+
+**This command creates task files as output. You must NOT use the `EnterPlanMode` tool.**
+
+- **DO**: Create `tasks/session_context_<session_id>.md` and `tasks/<name>_<session_id>.md` files
+- **DO NOT**: Call `EnterPlanMode` - this command IS the planning process
+- **DO NOT**: Ask for permission to enter plan mode
+
+The deliverable is the task file itself, not a plan mode session.
+
+---
+
 ## 🚨 MANDATORY SKILL INVOCATIONS - DO THESE FIRST 🚨
 
 **BEFORE doing ANYTHING else, invoke these skills:**
@@ -101,9 +113,11 @@ The answers enrich the task context and ensure accurate planning.
 **MANDATORY**: Always create session context files for tracking.
 
 **Context File Creation**:
-1. Generate unique session ID: `plan_$(date +%Y%m%d_%H%M%S)_$RANDOM`
+1. Generate unique session ID: `plan_YYYYMMDD_HHMMSS` (use today's date from `<env>` + current time estimate, e.g., `plan_20251129_143022`)
 2. Create `tasks/session_context_<session_id>.md` immediately
 3. Create `tasks/<descriptive-name>_<session_id>.md` for task plan
+
+> **Note**: Generate the session ID directly from the date shown in `<env>` section (e.g., "Today's date: 2025-11-29") combined with an estimated time. No shell command needed.
 
 **Context Updates Required**:
 1. **After codebase discovery**: Add discovered architecture to Technical Decisions
@@ -400,9 +414,9 @@ All generated files are created in the **current project directory** (not ~/.cla
 ```
 ✅ Task Plan Created Successfully
 
-Session ID: plan_20251010_143022_12345
-Session Context: tasks/session_context_plan_20251010_143022_12345.md
-Task Plan: tasks/user_authentication_oauth2_20251010_143022_12345.md
+Session ID: plan_20251010_143022
+Session Context: tasks/session_context_plan_20251010_143022.md
+Task Plan: tasks/user_authentication_oauth2_plan_20251010_143022.md
 
 📋 Task Summary:
 - Task complexity: Medium
@@ -411,8 +425,8 @@ Task Plan: tasks/user_authentication_oauth2_20251010_143022_12345.md
 - Estimated effort: 3-5 days
 
 🔗 Files:
-- Session Context: tasks/session_context_plan_20251010_143022_12345.md
-- Task Plan: tasks/user_authentication_oauth2_20251010_143022_12345.md
+- Session Context: tasks/session_context_plan_20251010_143022.md
+- Task Plan: tasks/user_authentication_oauth2_plan_20251010_143022.md
 ```
 
 ## Requirements
@@ -421,7 +435,7 @@ Task Plan: tasks/user_authentication_oauth2_20251010_143022_12345.md
 
 - **Git**: For repository detection and working directory context
 - **jq**: JSON processing for configuration
-- **date**: For timestamp generation in session IDs
+- **date**: Not required - timestamps generated from `<env>` context
 
 ### Permissions
 

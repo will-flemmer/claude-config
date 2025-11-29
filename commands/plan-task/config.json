@@ -69,9 +69,9 @@
     "question_timeout": 300
   },
   "session_settings": {
-    "id_pattern": "plan_{timestamp}_{random}",
-    "timestamp_format": "%Y%m%d_%H%M%S",
-    "random_range": [10000, 99999],
+    "id_pattern": "plan_{timestamp}",
+    "timestamp_format": "YYYYMMDD_HHMMSS",
+    "note": "Generate timestamp from <env> date context, no shell command needed",
     "context_file_pattern": "tasks/session_context_{session_id}.md",
     "task_doc_pattern": "tasks/{descriptive_name}_{session_id}.md"
   },
@@ -120,7 +120,7 @@
       "allow_skip": true
     },
     "session_id": {
-      "pattern": "^plan_[0-9]{8}_[0-9]{6}_[0-9]{4,5}$",
+      "pattern": "^plan_[0-9]{8}_[0-9]{6}$",
       "required": true
     }
   },
