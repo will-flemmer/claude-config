@@ -34,16 +34,22 @@
 - **What**: [description]
 - **Depends on**: [prior subtasks or "none"]
 - **Reference**: `path/to/similar.ts:line` (pattern to follow)
+- **Tests**:
+  - [ ] [test description - what behavior to verify]
+  - [ ] [test description]
 - **Done when**:
-  - [ ] [acceptance criterion]
-  - [ ] [acceptance criterion]
+  - [ ] Tests pass
+  - [ ] [additional acceptance criterion]
 
 ### Subtask 2: [Title]
 - **What**: [description]
 - **Depends on**: [prior subtasks or "none"]
 - **Reference**: `path/to/similar.ts:line`
+- **Tests**:
+  - [ ] [test description]
 - **Done when**:
-  - [ ] [acceptance criterion]
+  - [ ] Tests pass
+  - [ ] [additional acceptance criterion]
 
 ## External Dependencies
 
