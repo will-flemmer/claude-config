@@ -31,6 +31,33 @@ The deliverable is the task file itself, not a plan mode session.
 
 ---
 
+## Context7: External Library Documentation
+
+**When to use**: If the task involves external libraries (React, Next.js, Prisma, tRPC, etc.) and you need current API documentation to plan correctly.
+
+**How to use**:
+```javascript
+// 1. Resolve library ID
+mcp__context7__resolve-library-id({ libraryName: "prisma" })
+
+// 2. Fetch docs (optional topic filter, default 5000 tokens)
+mcp__context7__get-library-docs({
+  context7CompatibleLibraryID: "<resolved-id>",
+  topic: "migrations",  // optional
+  tokens: 5000          // optional, adjust for detail level
+})
+```
+
+**Use cases in planning**:
+- Verify library APIs exist before suggesting their use
+- Check for deprecated methods/patterns
+- Get current best practices for implementation guidance
+- Understand library constraints that affect architecture decisions
+
+**Skip if**: Task only involves internal code or well-known stable APIs.
+
+---
+
 ## What This Does
 1. **Analyzes** requirements and existing codebase
 2. **Discovers & verifies** available APIs before suggesting their use

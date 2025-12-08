@@ -1,7 +1,7 @@
 ---
 description: Review a GitHub PR for code quality, security, and best practices
 argument-hint: <pr-url>
-allowed-tools: Read, Write, Bash(gh:*), Bash(open:*), Grep, Glob, mcp__sequential-thinking__sequentialthinking
+allowed-tools: Read, Write, Bash(gh:*), Bash(open:*), Grep, Glob, mcp__sequential-thinking__sequentialthinking, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: claude-opus-4-5-20251101
 ---
 
@@ -38,6 +38,26 @@ gh pr view "$ARGUMENTS" --json comments,reviews --jq '.comments[], .reviews[]'
 ```bash
 gh pr checkout "$ARGUMENTS"
 ```
+
+### Context7: Fetch Library Documentation (If Applicable)
+
+**When to use**: If the PR modifies code that uses external libraries (React, Next.js, Prisma, etc.) and you need to verify correct API usage or check for deprecated patterns.
+
+**How to use**:
+1. Identify external libraries involved in changed code
+2. For each library needing verification:
+   ```javascript
+   // First, resolve the library ID
+   mcp__context7__resolve-library-id({ libraryName: "library-name" })
+
+   // Then fetch relevant docs (optional topic filter)
+   mcp__context7__get-library-docs({
+     context7CompatibleLibraryID: "<resolved-id>",
+     topic: "hooks"  // optional: focus on specific topic
+   })
+   ```
+
+**Skip if**: PR only touches internal code, configuration, or well-known stable APIs.
 
 ### MANDATORY: Start Sequential Thinking NOW
 
