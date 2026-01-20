@@ -120,13 +120,17 @@ just test
 - Remove tests for deleted functionality
 - Document removals in commit message
 
-### Step 6: Verify Quality
+### Step 6: Verify Quality (MANDATORY)
 
-Run quality checks:
-```bash
-just lint    # Fix any linting issues
-just test    # Ensure all tests pass
+**⚠️ INVOKE VERIFICATION SKILL NOW:**
 ```
+Skill({ skill: "verification-before-completion" })
+```
+
+**Requirements before claiming complete:**
+- Run appropriate tests and show the actual passing output
+- Run `just lint` and show clean output (or fix issues)
+- **Evidence required** - do NOT claim tests pass without showing output
 
 ## Test Selection Criteria
 
@@ -214,3 +218,15 @@ The command works with any test framework. Always:
 - Mock external dependencies
 - Clear, descriptive test names
 - Focus on quality over quantity
+
+## ✅ Completion Checklist
+
+**Before claiming work is complete, verify:**
+
+- [ ] Invoked `verification-before-completion` skill
+- [ ] Appropriate tests pass and showed actual passing output
+- [ ] Ran `just lint` and showed clean output
+- [ ] All new tests follow RED-GREEN-VERIFY-RESTORE cycle
+- [ ] No redundant tests were added
+
+**⚠️ Never claim "tests pass" without showing the actual test output!**
