@@ -13,3 +13,14 @@ if [ -f "$README_PATH" ]; then
 else
     echo "⚠️  README.md not found at $README_PATH"
 fi
+
+JUSTFILE_PATH="Justfile"
+
+if [ -f "$JUSTFILE_PATH" ]; then
+    echo ""
+    echo "📋 Available just recipes from Justfile:"
+    echo ""
+    cat "$JUSTFILE_PATH"
+    echo ""
+    echo "---"
+fi

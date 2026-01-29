@@ -21,7 +21,8 @@
       "Skill(parallel-execution-patterns)",
       "WebFetch(domain:www.josecasanova.com)",
       "WebFetch(domain:lobehub.com)",
-      "WebFetch(domain:apidog.com)"
+      "WebFetch(domain:apidog.com)",
+      "Bash(claude --version)"
     ],
     "deny": [],
     "ask": []
