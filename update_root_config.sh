@@ -8,6 +8,7 @@ echo ""
 # Create directories
 mkdir -p ~/.claude
 mkdir -p ~/.claude/commands
+mkdir -p ~/.claude/hooks
 mkdir -p ~/.claude/agents
 mkdir -p ~/.claude/skills
 
@@ -19,6 +20,12 @@ echo "✓ Copied CLAUDE.md to ~/.claude/"
 if [ -d commands ]; then
     cp -r commands/* ~/.claude/commands/
     echo "✓ Copied commands to ~/.claude/commands/"
+fi
+
+# Copy hooks if directory exists
+if [ -d .claude/hooks ]; then
+    cp -r .claude/hooks/* ~/.claude/hooks/
+    echo "✓ Copied hooks to ~/.claude/hooks/"
 fi
 
 # Copy agents if directory exists
