@@ -9,19 +9,25 @@
 
 **BEFORE doing ANYTHING else, invoke these skills:**
 
-1. **Writing any code?**
+1. **Dispatching parallel subagents?**
+   ```
+   Skill({ skill: "superpowers:dispatching-parallel-agents" })
+   ```
+   ↳ Pattern for dispatching independent tasks as parallel agents — used for wave execution
+
+2. **Writing any code?**
    ```
    Skill({ skill: "software-development" })
    ```
    ↳ Clean code principles - layer separation, DRY, no unnecessary try/catch
 
-2. **Writing/updating tests?**
+3. **Writing/updating tests?**
    ```
    Skill({ skill: "unit-testing" })
    ```
    ↳ Applies TDD principles, filters redundant tests
 
-3. **Before claiming complete:**
+4. **Before claiming complete:**
    ```
    Skill({ skill: "verification-before-completion" })
    ```
@@ -165,7 +171,17 @@ For each subtask (in order):
 - Verify all subtasks complete
 - (update context: current state)
 
-**7. Finalize Session**
+**7. Cross-Wave Code Review**
+
+After all waves pass, invoke `superpowers:requesting-code-review` to catch cross-wave integration issues:
+```
+Skill({ skill: "superpowers:requesting-code-review" })
+```
+↳ Dispatch a code review subagent that examines ALL changes across all waves together. This catches issues that per-subtask reviews miss: inconsistent patterns between waves, missing integration points, or subtle conflicts.
+
+If the reviewer finds issues: fix them, re-run tests, and re-verify before finalizing.
+
+**8. Finalize Session**
 - Set status to "Completed" in context
 - Update final quality gates checklist
 - (update context: current state, agent activity log)
@@ -195,7 +211,11 @@ Follow strict RED → GREEN → REFACTOR cycles:
 
 **Test Failures**
 - RED phase: Expected (tests should fail)
-- GREEN phase: Retry up to 3 times → log blocker if unresolved
+- GREEN phase: Retry up to 3 times → if still failing, invoke `superpowers:systematic-debugging`:
+  ```
+  Skill({ skill: "superpowers:systematic-debugging" })
+  ```
+  ↳ Systematic root cause analysis instead of blind retries. Follow the debugging skill's process to identify the actual issue before attempting further fixes.
 - REFACTOR phase: Revert or fix → ensure tests pass
 
 **Linting Failures**
@@ -214,6 +234,7 @@ Implementation complete when:
 - ✅ Integration check passed after each wave (no file conflicts, tests passing)
 - ✅ Final verification: all tests pass across all waves
 - ✅ Linting clean for all changed files
+- ✅ Cross-wave code review passed (no integration issues)
 - ✅ Session context updated with final status
 
 **Testing Strategy**: Each subagent runs only its related tests during TDD. Integration tests run between waves. Full test suite runs at final verification.
@@ -347,6 +368,8 @@ Use `implement-gh-issue` command if you need the full workflow with commits, PRs
 - **Integration checks between waves**: Tests and conflict detection after each parallel batch
 - **Graceful sequential fallback**: Plans without execution waves degrade to sequential execution
 - **Efficient Testing**: Run only tests related to changes (no full test suite runs)
+- **Systematic debugging**: When retries fail, invokes `superpowers:systematic-debugging` for root cause analysis
+- **Cross-wave code review**: After all waves, dispatches `superpowers:requesting-code-review` to catch integration issues
 - **Error Resilience**: Automatic retry logic (up to 3 attempts per subagent)
 - **Quality Assurance**: Automated testing and linting for changed files
 - **Progress Tracking**: Complete activity log with wave-level tracking in session context
