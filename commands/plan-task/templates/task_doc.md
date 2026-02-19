@@ -51,6 +51,19 @@
   - [ ] Tests pass
   - [ ] [additional acceptance criterion]
 
+## Execution Waves
+
+Subtasks grouped by dependency level for parallel dispatch by `implement-plan`.
+Each wave's subtasks are independent and can be implemented simultaneously.
+
+### Wave 1 (no dependencies — run in parallel)
+- Subtask N: [Title]
+- Subtask M: [Title]
+
+### Wave 2 (depends on Wave 1)
+- Subtask X: [Title] (depends on: Subtask N)
+- Subtask Y: [Title] (depends on: Subtask M)
+
 ## External Dependencies
 
 - **[library/service]**: [what it's used for]

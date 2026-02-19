@@ -16,10 +16,27 @@
 
 Initialized - Starting TDD implementation
 
+## Execution Wave Progress
+
+### Wave 1 (parallel dispatch)
+- **Status**: Pending
+- **Subtasks**: [list from plan]
+- **Dispatch Time**: --
+- **Completion Time**: --
+- **Integration Check**: Not started
+
+### Wave 2 (parallel dispatch)
+- **Status**: Pending
+- **Subtasks**: [list from plan]
+- **Dispatch Time**: --
+- **Completion Time**: --
+- **Integration Check**: Not started
+
 ## Implementation Progress
 
 ### Subtask 1: {{subtask_name}}
 - **Status**: Pending
+- **Wave**: 1
 - **RED Phase**: Not started
 - **GREEN Phase**: Not started
 - **REFACTOR Phase**: Not started
@@ -83,20 +100,34 @@ Additional observations and context discovered during implementation:
 
 This section tracks all test runs during implementation:
 
-### Test Run 1 (RED Phase - Subtask 1)
+### Wave 1 Integration Check
 - **Timestamp**: --
-- **Phase**: RED
-- **Command**: `just test`
+- **Subtasks completed**: --
+- **Files changed**: --
+- **File conflicts**: --
+- **Command**: `just test <changed-test-files>`
 - **Result**: --
-- **Expected**: Tests should fail (RED phase)
+
+### Wave 2 Integration Check
+- **Timestamp**: --
+- **Subtasks completed**: --
+- **Files changed**: --
+- **File conflicts**: --
+- **Command**: `just test <changed-test-files>`
+- **Result**: --
+
+### Subagent Test Runs
+(Tracked per-subagent — each subagent runs RED/GREEN/REFACTOR tests independently)
 
 ## Quality Checks
 
 ### Final Quality Gates
+- [ ] All waves executed
+- [ ] Integration check passed after each wave (no file conflicts)
 - [ ] All subtasks completed
-- [ ] All tests passing
-- [ ] Linting clean
-- [ ] Code follows TDD methodology
+- [ ] All tests passing (final verification across all waves)
+- [ ] Linting clean for all changed files
+- [ ] Code follows TDD methodology (per subagent)
 - [ ] No blockers remaining
 
 ## Related Files

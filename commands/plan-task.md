@@ -64,7 +64,8 @@ mcp__context7__get-library-docs({
 3. **Validates** technical assumptions using Explore agent
 4. **Breaks down** work into 3-7 subtasks with complexity estimates
 5. **Identifies** dependencies and execution order
-6. **Provides** implementation guidance grounded in verified code
+6. **Computes execution waves** — groups independent subtasks for parallel implementation
+7. **Provides** implementation guidance grounded in verified code
 
 ## Key Features
 - **API verification** - every suggested API has file:line reference or marked "needs creation"
@@ -73,6 +74,7 @@ mcp__context7__get-library-docs({
 - **Context integration** for multi-agent workflows
 - **Complexity scoring** (Simple/Medium/Complex)
 - **Dependency mapping** for optimal execution sequencing
+- **Execution waves** — topological sort of subtasks into parallel-dispatchable groups for `implement-plan`
 
 **Configuration & Templates**: `~/.claude/commands/plan-task/`
 
@@ -302,6 +304,16 @@ mcp__sequential-thinking__sequentialthinking({
 - Which can run in parallel?
 - External dependencies (APIs, libraries)?
 - Are there hidden dependencies?
+- Do any subtasks modify the same files? (creates implicit dependency)
+
+**Step 4.5**: Execution Wave Computation
+- **Topological sort** subtasks by their "Depends on" fields into waves
+- **Wave 1**: All subtasks with no dependencies (run in parallel)
+- **Wave 2**: Subtasks that depend only on Wave 1 subtasks (run in parallel after Wave 1)
+- **Wave N**: Continue until all subtasks are assigned to a wave
+- **File conflict check**: If two subtasks in the same wave modify the same files, move one to the next wave
+- **Output**: Structured `## Execution Waves` section in the task document (see template)
+- **Fallback**: If all subtasks are linearly dependent, produce a single-subtask-per-wave plan (degrades to sequential)
 
 **Step 5**: Risk Identification
 - What could go wrong?
@@ -564,6 +576,12 @@ When executing this command:
 - [ ] Validation results documented (EXISTS/MISSING/BLOCKED tables)
 - [ ] Missing APIs added as subtasks with complexity adjustment
 - [ ] Blocked assumptions flagged for user resolution
+
+**Execution Waves (CRITICAL for implement-plan performance)**
+- [ ] Subtasks sorted into execution waves via topological sort of dependencies
+- [ ] No two subtasks in the same wave modify the same files
+- [ ] `## Execution Waves` section populated in task documentation
+- [ ] Fallback: linear dependencies produce single-subtask-per-wave plan
 
 **Output Quality**
 - [ ] Both session context and task documentation files updated with findings

@@ -34,7 +34,9 @@
 ## What This Does
 Implements planned development tasks following TDD methodology. Reads planning documents, writes tests and code, updates session context throughout execution.
 
-**Key Activities**: Test creation → Implementation → Refactoring → Context updates → Quality checks
+**Key Activities**: Parse execution waves → Dispatch parallel subagents per wave → Integration checks → Final verification
+
+**Parallel Strategy**: Subtasks within the same wave have no dependencies and are dispatched as parallel subagents. Each subagent follows full TDD (RED → GREEN → REFACTOR) independently.
 
 ## Context File Integration
 **MANDATORY**: Always create session context files for tracking.
@@ -74,52 +76,96 @@ Reference in workflow steps as: `(update context: section_name)`
 **1. Validate Plan File** (Read tool)
 - Load plan from `{{plan_file_path}}`
 - Extract: objective, subtasks, acceptance criteria
+- **Parse `## Execution Waves` section** — extract wave structure and subtask assignments
 - Verify actionable subtasks exist
 - (update context: current state)
 
 **2. Create Session Context** (Write tool)
 - Generate session ID: `implement_YYYYMMDD_HHMMSS` (from `<env>` date)
 - Create `tasks/session_context_{{session_id}}.md`
-- Initialize: meta info, objective, subtask tracking, TDD phase tracking
+- Initialize: meta info, objective, wave tracking, subtask tracking, TDD phase tracking
 - (update context: current state)
 
-### Implementation Phase (For Each Subtask)
+### Implementation Phase (Wave-Based Parallel Dispatch)
 
-Execute complete TDD cycle for each subtask:
+**For each execution wave** (Wave 1, Wave 2, ... Wave N):
 
-**3. RED Phase - Write Failing Tests**
-- Write tests defining expected behavior for subtask
-- Ensure tests fail (no implementation yet)
-- Run related tests only (e.g., `just test path/to/test-file.spec.ts`)
-- (update context: current state, TDD cycle tracking, technical decisions)
+**3. Dispatch Parallel Subagents**
 
-**4. GREEN Phase - Implement Code**
-- Write minimal code to pass tests
-- Run related tests only (verify subtask tests pass)
-- If failures: debug → fix → re-run (retry up to 3 times)
-- (update context: current state, TDD cycle tracking, blockers if failures)
+For each subtask in the current wave, dispatch a `Task` subagent **in parallel** (all in a single message):
 
-**5. REFACTOR Phase - Improve Quality**
-- Improve code: remove duplication, enhance readability
-- Maintain passing tests throughout
-- Run related tests only (verify still passing)
-- Run: `just lint <files>` (lint only modified files)
-- (update context: current state, TDD cycle tracking, technical decisions)
+```javascript
+// Example: Wave 1 has Subtask 1 and Subtask 3
+Task({
+  subagent_type: "general-purpose",
+  description: "Implement Subtask 1: [Title]",
+  prompt: `You are implementing a single subtask using TDD methodology.
 
-**6. Complete Subtask**
-- Mark subtask complete in context
-- Update current state to next subtask
+## Subtask
+[Full subtask text from plan: title, description, acceptance criteria, file references]
+
+## Instructions
+1. **RED Phase**: Write failing tests for the behavior described above
+   - Run tests: \`just test path/to/test-file.spec.ts\`
+   - Verify tests FAIL (expected — no implementation yet)
+
+2. **GREEN Phase**: Write minimal code to make tests pass
+   - Run tests again — verify they PASS
+   - If failures: debug and fix (up to 3 retries)
+
+3. **REFACTOR Phase**: Improve code quality
+   - Remove duplication, improve readability
+   - Run tests — verify still passing
+   - Run: \`just lint <modified-files>\`
+
+## Constraints
+- Only modify files relevant to THIS subtask
+- Do NOT modify files outside your scope
+- Follow existing code patterns and conventions
+
+## Return
+Report: files changed, tests written, test results, lint status, summary of implementation`
+})
+```
+
+**Dispatch ALL subtasks in the wave as parallel `Task` calls in a single message.**
+
+**4. Integration Check (After Each Wave)**
+- Wait for all subagents in the wave to complete
+- Review each subagent's report (files changed, test results)
+- **Conflict detection**: Check if any subagents modified the same files
+  - If conflicts found: resolve manually before proceeding
+- **Integration test**: Run tests for ALL files changed in this wave together
+  - `just test <all-changed-test-files-from-this-wave>`
+- **Lint check**: `just lint <all-changed-files-from-this-wave>`
+- (update context: wave results, integration test results, blockers if any)
+
+**5. Complete Wave**
+- Mark all subtasks in wave as complete in context
+- Update current state to next wave
 - (update context: current state, agent activity log)
+
+**Repeat steps 3-5 for each subsequent wave.**
+
+### Sequential Fallback
+
+If the plan has **no `## Execution Waves` section** or all subtasks are linearly dependent (one subtask per wave), fall back to sequential execution:
+
+For each subtask (in order):
+- **RED Phase**: Write failing tests, run related tests only
+- **GREEN Phase**: Implement minimal code, retry up to 3 times on failure
+- **REFACTOR Phase**: Improve quality, run tests + lint
+- Mark subtask complete, move to next
 
 ### Completion Phase
 
-**7. Final Verification**
-- Run tests for all changed files
-- Run linting for all changed files
+**6. Final Verification**
+- Run tests for ALL changed files across all waves
+- Run linting for ALL changed files
 - Verify all subtasks complete
 - (update context: current state)
 
-**8. Finalize Session**
+**7. Finalize Session**
 - Set status to "Completed" in context
 - Update final quality gates checklist
 - (update context: current state, agent activity log)
@@ -164,73 +210,71 @@ Follow strict RED → GREEN → REFACTOR cycles:
 ## Completion Criteria
 
 Implementation complete when:
-- ✅ All subtasks processed
-- ✅ All related tests pass (tests for changed files)
-- ✅ Linting clean for changed files
+- ✅ All waves executed (all subtasks processed)
+- ✅ Integration check passed after each wave (no file conflicts, tests passing)
+- ✅ Final verification: all tests pass across all waves
+- ✅ Linting clean for all changed files
 - ✅ Session context updated with final status
 
-**Testing Strategy**: Run only tests related to the code being changed. This keeps feedback fast and focused.
+**Testing Strategy**: Each subagent runs only its related tests during TDD. Integration tests run between waves. Full test suite runs at final verification.
 
 ## Examples
 
-### Basic Usage
+### Basic Usage (Parallel Waves)
 
 ```bash
-# Implement a pre-planned task
+# Implement a pre-planned task with execution waves
 implement-plan tasks/user_authentication_oauth2_20251010_143022_12345.md
 
 # Expected output:
 # Creating implementation session...
 # Session context: tasks/session_context_implement_20251010_150530_98765.md
+# Parsed execution waves: 3 waves, 5 subtasks
 #
-# Implementing subtask 1/5: Create User model with OAuth fields
-#   RED phase: Writing tests...
-#   Tests written (3 new tests, all failing as expected)
+# === Wave 1 (2 subtasks in parallel) ===
+# Dispatching parallel subagents...
+#   Subtask 1: Create User model with OAuth fields → subagent dispatched
+#   Subtask 3: Set up OAuth provider config → subagent dispatched
+# Waiting for Wave 1 subagents...
+#   Subtask 1 complete ✓ (3 tests, all passing, lint clean)
+#   Subtask 3 complete ✓ (2 tests, all passing, lint clean)
+# Integration check: 5/5 tests passing, no file conflicts
 #
-#   GREEN phase: Implementing code...
-#   Implementation complete (tests passing: 3/3)
+# === Wave 2 (2 subtasks in parallel) ===
+# Dispatching parallel subagents...
+#   Subtask 2: Implement OAuth callback handlers → subagent dispatched
+#   Subtask 4: Add session management → subagent dispatched
+# Waiting for Wave 2 subagents...
+#   Subtask 2 complete ✓ (4 tests, all passing, lint clean)
+#   Subtask 4 complete ✓ (3 tests, all passing, lint clean)
+# Integration check: 12/12 tests passing, no file conflicts
 #
-#   REFACTOR phase: Improving code quality...
-#   Refactoring complete (tests passing: 3/3, linting: clean)
+# === Wave 3 (1 subtask) ===
+#   Subtask 5: Integration tests for full OAuth flow
+#   Complete ✓ (6 tests, all passing, lint clean)
 #
-# Subtask 1/5 complete ✓
-#
-# [... continues for all subtasks ...]
-#
+# Final verification: 18/18 tests passing, lint clean
 # Implementation complete!
-#   Total subtasks: 5
-#   Completed: 5
-#   Failed: 0
-#   Session context: tasks/session_context_implement_20251010_150530_98765.md
+#   Total subtasks: 5 | Waves: 3 | Failed: 0
 ```
 
-### With Test Failures
+### Sequential Fallback (No Waves)
 
 ```bash
-# Implementation with test failures (auto-retry)
-implement-plan tasks/complex_feature_20251010_120000_11111.md
+# Plan without execution waves — falls back to sequential
+implement-plan tasks/simple_feature_20251010_120000_11111.md
 
 # Expected output:
-# Creating implementation session...
-# Session context: tasks/session_context_implement_20251010_153045_44444.md
+# No execution waves found — using sequential execution
 #
-# Implementing subtask 1/3: Complex calculation engine
-#   RED phase: Writing tests...
-#   Tests written (5 new tests, all failing as expected)
+# Implementing subtask 1/3: [Title]
+#   RED → GREEN → REFACTOR ✓
+# Implementing subtask 2/3: [Title]
+#   RED → GREEN → REFACTOR ✓
+# Implementing subtask 3/3: [Title]
+#   RED → GREEN → REFACTOR ✓
 #
-#   GREEN phase: Implementing code...
-#   ⚠ Tests failed (2/5 passing) - Attempt 1/3
-#   Analyzing failures and fixing...
-#   ⚠ Tests failed (4/5 passing) - Attempt 2/3
-#   Analyzing failures and fixing...
-#   ✓ Implementation complete (tests passing: 5/5)
-#
-#   REFACTOR phase: Improving code quality...
-#   Refactoring complete (tests passing: 5/5, linting: clean)
-#
-# Subtask 1/3 complete ✓
-#
-# [... continues ...]
+# Final verification: all tests passing, lint clean
 ```
 
 ## Integration with Other Commands
@@ -298,11 +342,14 @@ Use `implement-gh-issue` command if you need the full workflow with commits, PRs
 
 ## Key Features
 
-- **Automated TDD**: Strict RED-GREEN-REFACTOR enforcement
+- **Wave-based parallel dispatch**: Independent subtasks run simultaneously as parallel subagents
+- **Automated TDD per subagent**: Each subagent follows strict RED-GREEN-REFACTOR
+- **Integration checks between waves**: Tests and conflict detection after each parallel batch
+- **Graceful sequential fallback**: Plans without execution waves degrade to sequential execution
 - **Efficient Testing**: Run only tests related to changes (no full test suite runs)
-- **Error Resilience**: Automatic retry logic (up to 3 attempts)
+- **Error Resilience**: Automatic retry logic (up to 3 attempts per subagent)
 - **Quality Assurance**: Automated testing and linting for changed files
-- **Progress Tracking**: Complete activity log in session context
+- **Progress Tracking**: Complete activity log with wave-level tracking in session context
 - **Traceability**: Every decision, test run, and phase logged
 
 ## Troubleshooting
