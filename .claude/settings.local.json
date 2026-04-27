@@ -36,7 +36,12 @@
       "WebFetch(domain:claude-ai.chat)",
       "WebFetch(domain:stevekaplanai.medium.com)",
       "WebFetch(domain:marketbetter.ai)",
-      "WebFetch(domain:www.buzzlead.io)"
+      "WebFetch(domain:www.buzzlead.io)",
+      "WebFetch(domain:gist.githubusercontent.com)",
+      "Bash(gh auth *)",
+      "Read(//Users/williamflemmer/**)",
+      "Read(//Users/williamflemmer/.config/**)",
+      "Bash(./tools/stats.sh)"
     ],
     "deny": [],
     "ask": []

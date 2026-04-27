@@ -163,7 +163,35 @@ The answers enrich the task context and ensure accurate planning.
 - **Analyze task**: Extract objective, constraints, technologies
 - **Ask clarifying questions**: 3-5 targeted questions (see Clarification Questions section)
 
-### 2. Codebase Discovery (Use Parallel Execution)
+### 2. Wiki Knowledge Search (Parallel with Codebase Discovery)
+
+**If the wiki exists at `~/Documents/llm-wiki/`**, query it for prior knowledge relevant to this task. Run this in parallel with codebase discovery (step 3).
+
+```javascript
+// Search via qmd MCP for relevant wiki pages
+mcp__qmd__query({ query: "<task description keywords>", collection: "wiki" })
+```
+
+If qmd MCP is unavailable, fall back to:
+```bash
+~/Documents/llm-wiki/tools/search.sh "<keywords>"
+```
+
+**What to look for**:
+- Prior decisions about similar architecture or patterns
+- Known gotchas with the technologies involved
+- Related entities (tools, libraries, frameworks) already documented
+- Relevant concepts (patterns, strategies) that apply to this task
+
+**How to use wiki results**:
+- Incorporate relevant findings into the **Technical Decisions** section of session context
+- Reference wiki pages in subtask guidance (e.g., "See [wiki page](wiki/slug.md) for prior notes on X")
+- Flag contradictions between wiki knowledge and current codebase state
+- If the wiki has nothing relevant, skip — don't force it
+
+**Skip this step if**: The task is purely mechanical (rename, formatting) or the wiki doesn't exist.
+
+### 3. Codebase Discovery (Use Parallel Execution)
 **Find relevant files**:
 ```bash
 find . -type f -name "*.ts" -o -name "*.js" | head -20
@@ -175,7 +203,7 @@ grep -r "pattern" --include="*.ts"
 
 **Update context**: Add discovered architecture to `Technical Decisions`
 
-### 3. API & Interface Discovery
+### 4. API & Interface Discovery
 
 **CRITICAL**: Before suggesting ANY API usage, verify it actually exists. Plans that suggest non-existent APIs are worse than no plan.
 

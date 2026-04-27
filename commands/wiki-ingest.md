@@ -3,7 +3,7 @@
 **EXECUTION**: Main Claude agent (no routing)
 **PURPOSE**: Process a new source into the LLM wiki
 
-**WIKI_ROOT**: ~/Documents/pd-llm-wiki
+**WIKI_ROOT**: ~/Documents/llm-wiki
 
 ---
 
@@ -48,21 +48,11 @@ Determine input type from `$ARGUMENTS`:
 - **File path**: Read the file directly.
 - **No argument**: Ask the user to provide a URL, file path, or paste content.
 
-Classify the source type based on content:
-- `articles` — blog posts, news, web content
-- `code` — code snippets, examples, repo excerpts
-- `notes` — personal observations
-- `notion` — Notion exports
-- `docs` — official documentation
-- `talks` — conference talk transcripts/notes
-- `rfcs` — RFCs, ADRs, proposals
-- `other` — anything else
-
 ### Phase 2: Store Raw Source
 
-Save the raw content to `WIKI_ROOT/raw/{type}/{descriptive-filename}.md`.
+Save the raw content to `WIKI_ROOT/raw/{descriptive-filename}.md`.
 
-**Filename**: descriptive slug based on content (e.g., `karpathy-llm-wiki-pattern.md`). The raw file is immutable after creation.
+**Filename**: descriptive slug based on content (e.g., `karpathy-llm-wiki-pattern.md`). The raw file is immutable after creation. Source type (article, code, docs, etc.) is captured in the wiki page frontmatter, not the directory structure.
 
 ### Phase 3: Read Schema
 
@@ -92,20 +82,20 @@ Extract:
 
 In a single message, execute in parallel:
 - Read `WIKI_ROOT/index.md` to understand current wiki state
-- For each identified entity, search `WIKI_ROOT/wiki/entities/` for existing pages: `Grep({ pattern: "{entity-name}", path: "WIKI_ROOT/wiki/entities/" })`
-- For each identified concept, search `WIKI_ROOT/wiki/concepts/` for existing pages: `Grep({ pattern: "{concept-name}", path: "WIKI_ROOT/wiki/concepts/" })`
+- For each identified entity/concept, use qmd via MCP: `mcp__qmd__query({ query: "{entity-or-concept-name}", collection: "wiki" })` for semantic matching against existing pages
+- If qmd is unavailable, fall back to: `Grep({ pattern: "{name}", path: "WIKI_ROOT/wiki/" })`
 
 This determines which pages to update vs. create.
 
 ### Phase 6: Create/Update Pages
 
-Following the schema in CLAUDE.md:
+Following the schema in CLAUDE.md. All pages go in `wiki/` (flat). The `type` frontmatter field distinguishes page types.
 
-1. **Create source summary** — `wiki/sources/{date}-{slug}.md` with full frontmatter, summary, key points, entities mentioned, concepts covered.
+1. **Create source summary** — `wiki/{date}-{slug}.md` with `type: source`, full frontmatter, summary, key points, entities mentioned, concepts covered.
 
 2. **For each entity**:
-   - If `wiki/entities/{slug}.md` exists → update it: add new information, add source reference to Sources section, update `updated` date, append to Changelog.
-   - If no page exists → create a stub (status: stub) with what we know from this source.
+   - If `wiki/{slug}.md` exists → update it: add new information, add source reference to Sources section, update `updated` date, append to Changelog.
+   - If no page exists → create a stub (`status: stub`) with what we know from this source.
 
 3. **For each concept**:
    - Same logic as entities.
@@ -121,29 +111,35 @@ Following the schema in CLAUDE.md:
 **log.md**: Append an entry:
 ```markdown
 - **HH:MM** INGEST: Processed "[Source Title]" ({type})
-  - Created: wiki/sources/{date}-{slug}.md
-  - Created: wiki/entities/{slug}.md (stub)
-  - Updated: wiki/concepts/{slug}.md
+  - Created: wiki/{date}-{slug}.md (source)
+  - Created: wiki/{slug}.md (entity stub)
+  - Updated: wiki/{slug}.md (concept)
   - Updated: index.md
 ```
 
-### Phase 8: Report
+### Phase 8: Re-index Search
+
+Update the qmd search index so new/updated pages are findable:
+```bash
+cd WIKI_ROOT && qmd update && qmd embed
+```
+
+### Phase 9: Report
 
 Output a summary to the user:
 
 ```
 ✅ Source Ingested: [Title]
 
-Raw source: raw/{type}/{filename}.md
-Source summary: wiki/sources/{date}-{slug}.md
+Raw source: raw/{filename}.md
+Source summary: wiki/{date}-{slug}.md
 
 Pages created (N):
-  - wiki/entities/{slug}.md (stub)
-  - wiki/concepts/{slug}.md
+  - wiki/{slug}.md (entity stub)
+  - wiki/{slug}.md (concept)
 
 Pages updated (N):
-  - wiki/entities/{slug}.md
-  - wiki/concepts/{slug}.md
+  - wiki/{slug}.md
 
 New entities: [list]
 New concepts: [list]
@@ -152,12 +148,12 @@ New concepts: [list]
 ## Error Handling
 
 - **URL fetch fails**: Report the error, ask user to provide content another way
-- **Source already ingested**: Check `wiki/sources/` for existing summary with same title. If found, ask user if they want to re-ingest (update) or skip.
+- **Source already ingested**: Search `wiki/` for existing summary with same title (`type: source`). If found, ask user if they want to re-ingest (update) or skip.
 - **Large source**: If content exceeds ~10,000 words, process in chunks. Summarize each chunk, then synthesize.
 - **Ambiguous entity/concept**: If unsure whether something is an entity or concept, prefer entity for named things and concept for ideas/techniques.
 
 ## Requirements
 
-- Wiki repo must exist at `~/Documents/pd-llm-wiki/`
-- `rg` (ripgrep) for searching existing wiki pages
+- Wiki repo must exist at `~/Documents/llm-wiki/`
+- `qmd` for semantic search (primary), `rg` (ripgrep) as fallback
 - Network access for URL-based sources (WebFetch or puppeteer)

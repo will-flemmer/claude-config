@@ -3,7 +3,7 @@
 **EXECUTION**: Main Claude agent (no routing)
 **PURPOSE**: Answer questions from the LLM wiki with citations
 
-**WIKI_ROOT**: ~/Documents/pd-llm-wiki
+**WIKI_ROOT**: ~/Documents/llm-wiki
 
 ---
 
@@ -45,9 +45,11 @@ Extract the question from `$ARGUMENTS`. Identify:
 Execute all searches in a single message:
 
 1. **Read `WIKI_ROOT/index.md`** — scan for relevant entries
-2. **Full-text search** — `Bash({ command: "WIKI_ROOT/tools/search.sh '<keywords>'" })` for broad matches
-3. **Entity search** — `Grep({ pattern: "<entity>", path: "WIKI_ROOT/wiki/entities/" })` for each mentioned entity
-4. **Concept search** — `Grep({ pattern: "<concept>", path: "WIKI_ROOT/wiki/concepts/" })` for each mentioned concept
+2. **Semantic search** — `mcp__qmd__query({ query: "<question>", collection: "wiki" })` for hybrid BM25 + vector search with re-ranking
+3. **Entity-specific search** — `mcp__qmd__query({ query: "<entity-name>", collection: "wiki" })` for each key entity
+4. **Raw source search** (if wiki results are thin) — `mcp__qmd__query({ query: "<question>", collection: "raw" })` to check if raw sources have uncaptured information
+
+If qmd is unavailable, fall back to `tools/search.sh` and `Grep`.
 
 Collect all matching file paths.
 
@@ -116,6 +118,6 @@ Suggested sources to ingest:
 
 ## Requirements
 
-- Wiki repo must exist at `~/Documents/pd-llm-wiki/`
-- `rg` (ripgrep) for full-text search
-- `tools/search.sh` must be executable
+- Wiki repo must exist at `~/Documents/llm-wiki/`
+- `qmd` for semantic search (primary), `rg` (ripgrep) as fallback
+- `tools/search.sh` must be executable (fallback)

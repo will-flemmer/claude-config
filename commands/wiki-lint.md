@@ -3,7 +3,7 @@
 **EXECUTION**: Main Claude agent (no routing)
 **PURPOSE**: Health-check the LLM wiki for structural and content issues
 
-**WIKI_ROOT**: ~/Documents/pd-llm-wiki
+**WIKI_ROOT**: ~/Documents/llm-wiki
 
 ---
 
@@ -43,7 +43,7 @@ wiki-lint --fix     # Report and auto-fix what's possible
 
 Execute in a single message:
 
-1. **List all wiki pages**: `Glob({ pattern: "wiki/**/*.md", path: "WIKI_ROOT" })`
+1. **List all wiki pages**: `Glob({ pattern: "wiki/*.md", path: "WIKI_ROOT" })`
 2. **Read index.md**: `Read({ file_path: "WIKI_ROOT/index.md" })`
 3. **Read recent log**: `Bash({ command: "tail -50 WIKI_ROOT/log.md" })`
 4. **Get stats**: `Bash({ command: "WIKI_ROOT/tools/stats.sh" })`
@@ -64,7 +64,7 @@ Run these checks simultaneously:
 
 **2c. Frontmatter Validation**
 - Every wiki page must have: type, title, created, updated, tags, status, domain
-- Check that `type` matches the directory (e.g., files in `wiki/entities/` should have `type: entity`)
+- Check that `type` is one of: source, entity, concept, analysis, answer
 - Check that `status` is one of: active, stub, stale, deprecated
 - Check that `domain` is from the allowed list in CLAUDE.md
 - Severity: Error for missing required fields, Warning for invalid values
@@ -186,6 +186,6 @@ After fixing, append to log.md:
 
 ## Requirements
 
-- Wiki repo must exist at `~/Documents/pd-llm-wiki/`
+- Wiki repo must exist at `~/Documents/llm-wiki/`
 - `rg` (ripgrep) for searching
 - `tools/stats.sh` for overview statistics
