@@ -41,7 +41,8 @@
       "Bash(gh auth *)",
       "Read(//Users/williamflemmer/**)",
       "Read(//Users/williamflemmer/.config/**)",
-      "Bash(./tools/stats.sh)"
+      "Bash(./tools/stats.sh)",
+      "Skill(update-config)"
     ],
     "deny": [],
     "ask": []
