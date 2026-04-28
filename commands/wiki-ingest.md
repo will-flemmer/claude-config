@@ -1,3 +1,10 @@
+---
+description: Process a new source (URL, file, pasted content) into the LLM wiki
+argument-hint: <source-path-or-url>
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, mcp__qmd__query
+model: claude-opus-4-7
+---
+
 # wiki-ingest
 
 **EXECUTION**: Main Claude agent (no routing)
@@ -82,7 +89,17 @@ Extract:
 
 In a single message, execute in parallel:
 - Read `WIKI_ROOT/index.md` to understand current wiki state
-- For each identified entity/concept, use qmd via MCP: `mcp__qmd__query({ query: "{entity-or-concept-name}", collection: "wiki" })` for semantic matching against existing pages
+- For each identified entity/concept, use qmd via MCP for semantic matching against existing pages:
+  ```javascript
+  mcp__qmd__query({
+    searches: [
+      { type: "lex", query: "<entity-or-concept-name>" },
+      { type: "vec", query: "<entity-or-concept-name> <related terms>" }
+    ],
+    collections: ["wiki"],
+    intent: "Find existing pages on this entity/concept so we update instead of duplicating"
+  })
+  ```
 - If qmd is unavailable, fall back to: `Grep({ pattern: "{name}", path: "WIKI_ROOT/wiki/" })`
 
 This determines which pages to update vs. create.

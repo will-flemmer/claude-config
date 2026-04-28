@@ -42,7 +42,11 @@
       "Read(//Users/williamflemmer/**)",
       "Read(//Users/williamflemmer/.config/**)",
       "Bash(./tools/stats.sh)",
-      "Skill(update-config)"
+      "Skill(update-config)",
+      "Bash(qmd --version)",
+      "Bash(qmd mcp *)",
+      "Bash(qmd --help)",
+      "Bash(claude mcp *)"
     ],
     "deny": [],
     "ask": []

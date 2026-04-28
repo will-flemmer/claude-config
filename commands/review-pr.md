@@ -1,7 +1,7 @@
 ---
 description: Review a GitHub PR for code quality, security, and best practices
-argument-hint: <pr-url>
-allowed-tools: Read, Write, Bash(gh:*), Bash(open:*), Grep, Glob, mcp__sequential-thinking__sequentialthinking, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
+argument-hint: <pr-url> [--no-post] [--public]
+allowed-tools: Read, Write, Bash(gh:*), Bash(open:*), Bash(jq:*), Bash(mkdir:*), Bash(date:*), Bash(uuidgen:*), Bash(shasum:*), Bash(echo:*), Bash(cat:*), Bash(test:*), Grep, Glob, mcp__sequential-thinking__sequentialthinking, mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__qmd__query
 model: claude-opus-4-5-20251101
 ---
 
@@ -38,6 +38,69 @@ gh pr view "$ARGUMENTS" --json comments,reviews --jq '.comments[], .reviews[]'
 ```bash
 gh pr checkout "$ARGUMENTS"
 ```
+
+### Prior Lessons Injection (MANDATORY — DO NOT SKIP)
+
+> ⚠️ **CRITICAL**: You MUST call `mcp__qmd__query` exactly once in this step before any reasoning about the PR. This is non-negotiable. The wiki contains lessons distilled from past `/review-feedback` runs — verified rules that prevent re-flagging known false-positives and surface known-missed categories. Skipping this step regresses every prior session's learning.
+
+**You will be penalized if you proceed past this step without invoking `mcp__qmd__query`.** Do not skip on the basis that "this PR is small" or "there probably aren't relevant lessons." The whole point of the feedback loop is that you can't predict which lessons apply until you query. The only exception is if the lessons directory does not exist (see preflight below).
+
+#### Preflight (one bash call)
+
+```bash
+test -d ~/Documents/llm-wiki/wiki/review-lessons && echo LESSONS_EXIST || echo LESSONS_MISSING
+```
+
+- `LESSONS_MISSING` → skip this step, note it in your output ("no review-lessons directory yet — feedback loop hasn't been run; proceeding without prior knowledge").
+- `LESSONS_EXIST` → you MUST proceed to the qmd call below. No exceptions.
+
+#### Required call
+
+```javascript
+mcp__qmd__query({
+  searches: [
+    { type: "lex", query: "<changed languages + key file/symbol names from the PR>" },
+    { type: "vec", query: "<one-sentence summary of what this PR does>" }
+  ],
+  collections: ["wiki"],
+  intent: "Find prior review lessons that should apply before reasoning about this PR",
+  limit: 10
+})
+```
+
+**Required parameters** — all four (`searches`, `collections`, `intent`, `limit`) must be present. Omitting `intent` materially degrades reranking.
+
+**Build searches from the actual PR.** If the PR adds Redis caching to a Rails session controller:
+- `lex`: `redis cache "session" rails`
+- `vec`: `"adding Redis cache to session storage in a Rails controller"`
+- `intent`: `"Find lessons about Redis usage, cache patterns, or session-handling pitfalls relevant to this PR"`
+
+**Do not** use placeholder strings like `<changed-language>` — substitute real terms.
+
+#### Filter and apply
+
+After the call:
+1. Keep only results whose `path` starts with `wiki/review-lessons/`
+2. Read each one's frontmatter `scope` field (a glob array)
+3. Drop lessons whose `scope` doesn't match any file changed in the PR
+4. Take the top 5 by relevance
+
+Treat surviving lessons as **prior knowledge to apply**. If you choose NOT to apply a relevant lesson, state why in the analysis output.
+
+#### Required post-call output
+
+Before continuing to the next step, state:
+- "Prior-lessons search returned N results, M after scope filter"
+- For each surviving lesson: 1-line title + how it influences this review (suppress / raise / no-op)
+- If N=0 or M=0: say so explicitly — silence is indistinguishable from skipping
+
+#### Track applied lessons
+
+For each retrieved lesson you actually used, record:
+- The lesson's file path
+- Which finding `review_id`s it influenced
+
+This list becomes the `applied_lessons` array in the sidecar (Phase 4, Step 2). It drives `/review-feedback`'s `applied_count` / `dropped_count` updates and the Tricorder kill switch in `wiki-lint`.
 
 ### Context7: Fetch Library Documentation (If Applicable)
 
@@ -202,6 +265,16 @@ Key question: "If this test passes, does it prove the feature works?"
 
 ## Output Format: HTML Report
 
+**Skip this entire phase if posting to PR (the default).** When findings will be posted in Phase 4, the HTML report is redundant — the PR comment thread is the canonical surface.
+
+Only generate the HTML report when:
+- `$ARGUMENTS` contains `--no-post`, OR
+- Phase 4 was skipped for any reason (public-repo guard tripped, etc.)
+
+If posting, jump directly to Phase 4.
+
+---
+
 Generate a styled HTML report using the template at `~/.claude/commands/review-pr/template.html`.
 
 ### Step 1: Read the HTML Template
@@ -287,6 +360,173 @@ open "$output_file"  # Opens in default browser
 
 ---
 
+## Phase 4: Post Findings to PR (default ON; skip if `--no-post` in arguments)
+
+This phase enables the feedback loop. Each finding is posted as a comment on the PR with a stable `review_id` so `/review-feedback` can later mine the thread for verdicts.
+
+**Skip this phase entirely if `$ARGUMENTS` contains `--no-post`.** Tell the user findings were not posted.
+
+### Step 1: Assign stable review_ids
+
+For each finding, generate a deterministic id:
+
+```bash
+# review_id = first 12 chars of sha256(pr_url + file + line + title)
+echo -n "<pr-url>|<file>|<line>|<title>" | shasum -a 256 | cut -c1-12
+```
+
+Stable ids let re-runs of `/review-pr` skip already-posted findings (check sidecar before posting).
+
+### Step 2: Build the sidecar
+
+**Path: `<repo-root>/pr-reviews/sidecars/<pr-number>.json`** (committed to the repo, shared across machines and teammates).
+
+```bash
+# Determine repo root from the checked-out PR
+repo_root=$(git rev-parse --show-toplevel)
+mkdir -p "$repo_root/pr-reviews/sidecars"
+```
+
+**Public-repo guard.** Before writing, check repo visibility:
+
+```bash
+visibility=$(gh repo view --json visibility --jq '.visibility')
+```
+
+If `visibility == "PUBLIC"`, the JSONL log will contain verbatim human-reviewer comments and become public. **Refuse to proceed unless `$ARGUMENTS` contains `--public`.** Tell the user:
+- This repo is public; review feedback will be committed and visible to anyone
+- Re-run with `--public` to acknowledge, or `--no-post` to skip posting entirely
+
+If `--public` is passed (or repo is private/internal), proceed.
+
+Schema:
+
+```json
+{
+  "pr_url": "https://github.com/owner/repo/pull/123",
+  "pr_number": 123,
+  "reviewed_at": "2026-04-28T14:32:00Z",
+  "head_sha": "<commit sha at review time>",
+  "applied_lessons": [
+    {
+      "lesson_path": "wiki/review-lessons/dont-flag-strict-null-checks-ts.md",
+      "lesson_title": "Don't flag missing null checks in TS strict mode",
+      "influenced_findings": ["abc123def456"]
+    }
+  ],
+  "findings": [
+    {
+      "review_id": "abc123def456",
+      "severity": "high",
+      "file": "src/auth.ts",
+      "line": 42,
+      "title": "Missing null check on user.id",
+      "body": "<full markdown finding body>",
+      "posted_comment_id": null,
+      "posted_comment_url": null,
+      "posted_at": null
+    }
+  ]
+}
+```
+
+**`applied_lessons`** — lessons retrieved during Phase 2 prior-lessons injection that influenced findings. List which finding `review_id`s were affected (suppressed or generated based on the lesson). This lets `/review-feedback` increment `applied_count` on the lesson and `dropped_count` if the influenced finding turned out to be a false-positive.
+
+If sidecar already exists for this PR, merge: keep posted ids, only post net-new findings.
+
+### Step 3: Post each finding
+
+**Comment format — keep it tight.** PR comments are conversational, not reports. Default 1–3 sentences. Inline code only when essential. No severity headers, no "Issue:" / "Fix:" / "Why:" labels, no horizontal rules, no emojis beyond a single severity prefix.
+
+**Shape:**
+
+```
+**[severity]** <one-sentence problem statement>. <optional second sentence: why it matters or suggested fix>.
+
+<!-- review-id: abc123def456 -->
+```
+
+Where `[severity]` is one of `critical` / `high` / `medium` / `nit`. Example:
+
+```
+**high** `user.id` can be undefined here when the session is anonymous — this will throw at runtime.
+
+<!-- review-id: abc123def456 -->
+```
+
+**Allowed expansions** (use sparingly):
+- One short code block (≤8 lines) when the fix isn't obvious from prose
+- One bullet list (≤4 items) when listing distinct cases
+- A single inline link to a referenced file/line elsewhere
+
+**Forbidden:**
+- Multi-paragraph explanations
+- Restating what the code does
+- "Consider...", "You might want to...", "It would be nice if..."
+- Hedge phrases ("I could be wrong, but...", "This may or may not be an issue")
+- Praise ("Great work!", "Nice refactor")
+- "Suggested fix" sections that just rewrite the line in prose
+- Cross-referencing other findings ("see also #2") — each comment stands alone
+
+**For each finding NOT already posted, append the marker to the body:**
+
+```
+<!-- review-id: abc123def456 -->
+```
+
+**Inline (file:line known)** — use `gh api` to post a review comment on the diff:
+
+```bash
+gh api \
+  -X POST \
+  /repos/{owner}/{repo}/pulls/{pr_number}/comments \
+  -f body="<finding body>
+
+<!-- review-id: abc123def456 -->" \
+  -f commit_id="<head_sha>" \
+  -f path="src/auth.ts" \
+  -F line=42 \
+  -f side=RIGHT
+```
+
+**General (no file:line)** — issue comment on the PR:
+
+```bash
+gh pr comment "$ARGUMENTS" --body "<finding body>
+
+<!-- review-id: abc123def456 -->"
+```
+
+Capture the returned `id` and `html_url` from the API response and write back to the sidecar (`posted_comment_id`, `posted_comment_url`, `posted_at`).
+
+### Step 4: Save the sidecar
+
+Write the completed sidecar atomically:
+
+```bash
+# Write to a tmp file first, then mv — avoids partial writes
+```
+
+### Step 5: Report
+
+Tell the user:
+- Number of findings posted (and to which PR)
+- Sidecar path (`<repo-root>/pr-reviews/sidecars/<pr>.json`)
+- That `/review-feedback <pr-url>` will mine responses later
+- That the sidecar is committable — they should `git add pr-reviews/` if they want to share/sync feedback across machines or teammates
+
+---
+
 ## Final Step
 
-After opening the HTML report, ask: Post as PR comment (`gh pr comment` - use markdown format for GitHub) or keep the HTML report only?
+Summarize, depending on path taken:
+
+**If posted to PR (default):**
+1. Findings posted: N (link to PR)
+2. Sidecar: `<repo-root>/pr-reviews/sidecars/<pr>.json`
+3. Next: run `/review-feedback <pr-url>` after the PR thread has activity to capture verdicts and update the wiki.
+
+**If `--no-post` (HTML-only):**
+1. HTML report path
+2. Findings: N (not posted)
+3. To enable the feedback loop, re-run without `--no-post`.

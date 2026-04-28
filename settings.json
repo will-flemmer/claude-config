@@ -4,7 +4,14 @@
     "MAX_THINKING_TOKENS": "0"
   },
   "permissions": {
-    "defaultMode": "acceptEdits"
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": [
+      "~/Documents/llm-wiki/"
+    ],
+    "allow": [
+      "Edit(~/Documents/llm-wiki/**)",
+      "Write(~/Documents/llm-wiki/**)"
+    ]
   },
   "hooks": {
     "SessionStart": [

@@ -20,6 +20,10 @@
         "-y",
         "@upstash/context7-mcp@latest"
       ]
+    },
+    "qmd": {
+      "command": "qmd",
+      "args": ["mcp"]
     }
   }
 }

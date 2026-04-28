@@ -1,3 +1,10 @@
+---
+description: Analyze tasks and create actionable implementation plans with codebase + wiki research
+argument-hint: <task-description>
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, mcp__qmd__query, mcp__sequential-thinking__sequentialthinking
+model: claude-opus-4-7
+---
+
 # plan-task
 
 **EXECUTION**: Main Claude agent (no routing)
@@ -163,19 +170,52 @@ The answers enrich the task context and ensure accurate planning.
 - **Analyze task**: Extract objective, constraints, technologies
 - **Ask clarifying questions**: 3-5 targeted questions (see Clarification Questions section)
 
-### 2. Wiki Knowledge Search (Parallel with Codebase Discovery)
+### 2. Wiki Knowledge Search (MANDATORY — DO NOT SKIP)
 
-**If the wiki exists at `~/Documents/llm-wiki/`**, query it for prior knowledge relevant to this task. Run this in parallel with codebase discovery (step 3).
+> ⚠️ **CRITICAL**: You MUST call `mcp__qmd__query` exactly once in this step before proceeding to step 3. This is non-negotiable. The wiki contains prior decisions, gotchas, and prior-art that will materially change your plan. Skipping this step has caused planning regressions in past sessions.
+
+**You will be penalized if you proceed past this step without invoking `mcp__qmd__query`.** Do not skip it on the basis that the task seems "purely codebase work" or "simple" — even mechanical tasks have hit prior gotchas captured in the wiki. The only exception is if the wiki directory does not exist (see preflight below).
+
+#### Preflight (one bash call)
+
+```bash
+test -d ~/Documents/llm-wiki/wiki && echo WIKI_EXISTS || echo WIKI_MISSING
+```
+
+- `WIKI_MISSING` → skip this step, note it in your output ("wiki not present at ~/Documents/llm-wiki — skipping prior-knowledge search").
+- `WIKI_EXISTS` → you MUST proceed to the qmd call below. No exceptions.
+
+#### Required call
+
+Issue this in the **same message** as your codebase discovery (step 3) — they run in parallel:
 
 ```javascript
-// Search via qmd MCP for relevant wiki pages
-mcp__qmd__query({ query: "<task description keywords>", collection: "wiki" })
+mcp__qmd__query({
+  searches: [
+    { type: "lex", query: "<exact terms / proper nouns from the task>" },
+    { type: "vec", query: "<the task restated as a natural-language question>" }
+  ],
+  collections: ["wiki"],
+  intent: "<one sentence — what we're trying to learn from prior wiki notes>",
+  limit: 10
+})
 ```
 
-If qmd MCP is unavailable, fall back to:
-```bash
-~/Documents/llm-wiki/tools/search.sh "<keywords>"
-```
+**Required parameters** — all four (`searches`, `collections`, `intent`, `limit`) must be present. Do not omit `intent`; it materially improves reranking.
+
+**Build the searches from the actual task.** If the user said "add Redis caching to the session endpoint":
+- `lex`: `"redis" "session" cache`
+- `vec`: `"how should we cache session data with Redis"`
+- `intent`: `"Find prior decisions about caching, Redis usage, or session storage in this codebase's documented history"`
+
+**Do not** use placeholder strings like `<task description keywords>` — those are template hints, not actual queries. Substitute real terms from the task.
+
+#### After the call
+
+State explicitly in your planning output:
+- "Wiki search returned N results" (even if N=0)
+- For each relevant result: 1-line summary + how it informs the plan
+- If N=0 or nothing is relevant: say so explicitly — silence is indistinguishable from skipping the step
 
 **What to look for**:
 - Prior decisions about similar architecture or patterns

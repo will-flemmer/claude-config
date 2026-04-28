@@ -1,3 +1,10 @@
+---
+description: Health-check the LLM wiki for structural and content issues
+argument-hint: [--fix]
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, mcp__qmd__query
+model: claude-opus-4-7
+---
+
 # wiki-lint
 
 **EXECUTION**: Main Claude agent (no routing)
@@ -103,6 +110,42 @@ Run these checks simultaneously:
 - **Entries in index.md for pages that don't exist** — Error
 - **Count mismatches** — Warning (e.g., index says "Sources (5 total)" but there are 6)
 
+### Phase 4b: Review-Lesson Hygiene (if `wiki/review-lessons/` exists)
+
+Lessons in `wiki/review-lessons/` are auto-generated from `/review-feedback` distillation. They need separate hygiene checks because they have additional frontmatter (`scope`, `confidence`, `applied_count`, `dropped_count`, `last_confirmed`) and a Tricorder-style kill-switch lifecycle.
+
+**4b.1 Stale Lesson Check**
+- Lessons whose `last_confirmed` is > 90 days ago AND `applied_count` has not increased in that window
+- Severity: Warning
+- Action (not auto-fix): suggest archiving or re-validating
+
+**4b.2 High-Drop-Rate Check (Tricorder kill switch)**
+- For each lesson, compute `drop_ratio = dropped_count / max(applied_count, 1)`
+- Flag lessons where `drop_ratio > 0.3` AND `applied_count >= 5`
+- Severity: Error — the lesson is producing more noise than signal
+- Action: change `status: active` → `status: deprecated`, suggest review
+
+**4b.3 Broken Example Check**
+- For each lesson, parse the ✅ and ❌ code blocks
+- For typescript/javascript/python blocks, run a syntax-only check (e.g. `node --check`, `python -m py_compile`) on the example
+- Skip languages without an available syntax checker
+- Severity: Warning — example no longer parses, may be using outdated syntax
+
+**4b.4 Scope Validity Check**
+- Each lesson must have a `scope` array of glob patterns
+- Verify globs are syntactically valid
+- If `scope` is missing or empty → Severity: Error (lesson will never be retrieved)
+
+**4b.5 Confidence Sanity Check**
+- `confidence` must be `>= 1` (auto-promoted threshold is 3, but human-promoted from `pending-lessons.md` may be lower)
+- `supporting_prs` array length should match `confidence`
+- Severity: Warning
+
+**4b.6 Contradiction Detection (lesson-vs-lesson)**
+- For lessons with overlapping `scope`, check whether the rules contradict
+- Use LLM judgment ("does lesson A's rule conflict with lesson B's rule when both apply?")
+- Severity: Warning — flag for human review, don't auto-resolve
+
 ### Phase 5: Contradiction Scan (LLM Judgment)
 
 For entities and concepts with 2+ sources:
@@ -177,6 +220,15 @@ After fixing, append to log.md:
 ```
 
 **Do NOT auto-fix**: contradictions, stale content, tag merges, naming convention issues. These require human judgment.
+
+### Phase 7b: Review-Lesson Auto-Fix (if --fix and review-lessons exist)
+
+Additional auto-fixes specific to review lessons:
+
+1. **Deprecate high-drop-rate lessons** — set `status: active` → `status: deprecated` for lessons failing 4b.2 (kill switch). Add a `deprecated_at` field and a changelog entry.
+2. **Set missing tracking fields** — if `applied_count`, `dropped_count`, or `last_confirmed` is missing, initialize them (`applied_count: 0`, `dropped_count: 0`, `last_confirmed: <created date>`).
+
+**Do NOT auto-fix**: contradictions between lessons, stale lessons (suggest archiving but don't act), broken examples (the rule may still be valid even with a stale example).
 
 ## Error Handling
 

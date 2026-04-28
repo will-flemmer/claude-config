@@ -1,3 +1,10 @@
+---
+description: Implement task plans using TDD methodology with parallel subagents
+argument-hint: <plan-file>
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, mcp__qmd__query, mcp__sequential-thinking__sequentialthinking
+model: claude-opus-4-7
+---
+
 # implement-plan
 
 **EXECUTION**: Main Claude agent (no routing)

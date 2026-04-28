@@ -1,3 +1,10 @@
+---
+description: Extract learnings from the current conversation and ingest them into the wiki
+argument-hint: [topic]
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, mcp__qmd__query
+model: claude-opus-4-7
+---
+
 # wiki-capture
 
 **EXECUTION**: Main Claude agent (no routing)
@@ -101,7 +108,17 @@ Wait for user confirmation before proceeding. The user may:
 ### Phase 4: Search Existing Wiki (Parallel)
 
 For each approved learning, search the wiki for existing pages:
-- Use qmd via MCP: `mcp__qmd__query({ query: "{topic}", collection: "wiki" })` for semantic matching
+- Use qmd via MCP for semantic matching:
+  ```javascript
+  mcp__qmd__query({
+    searches: [
+      { type: "lex", query: "<topic exact terms>" },
+      { type: "vec", query: "<topic in natural language>" }
+    ],
+    collections: ["wiki"],
+    intent: "Check whether wiki already covers this learning before creating a new page"
+  })
+  ```
 - If qmd is unavailable, fall back to: `Grep({ pattern: "{topic keywords}", path: "WIKI_ROOT/wiki/" })`
 
 This determines whether to create new pages or update existing ones.

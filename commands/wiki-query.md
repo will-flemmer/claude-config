@@ -1,3 +1,10 @@
+---
+description: Answer questions from the LLM wiki with citations to source pages
+argument-hint: <question>
+allowed-tools: Read, Bash, Grep, Glob, mcp__qmd__query
+model: claude-opus-4-7
+---
+
 # wiki-query
 
 **EXECUTION**: Main Claude agent (no routing)
@@ -40,18 +47,64 @@ Extract the question from `$ARGUMENTS`. Identify:
 - Key concepts mentioned (patterns, strategies, techniques, etc.)
 - Question type: factual, comparison, how-to, opinion, exploration
 
-### Phase 2: Search Wiki (Parallel)
+### Phase 2: Search Wiki (MANDATORY — DO NOT SKIP)
 
-Execute all searches in a single message:
+> ⚠️ **CRITICAL**: This command is meaningless without a qmd query. You MUST call `mcp__qmd__query` at least once in this step. Answering from intuition, training data, or `index.md` alone defeats the entire purpose of the wiki — it is not a substitute for retrieval.
 
-1. **Read `WIKI_ROOT/index.md`** — scan for relevant entries
-2. **Semantic search** — `mcp__qmd__query({ query: "<question>", collection: "wiki" })` for hybrid BM25 + vector search with re-ranking
-3. **Entity-specific search** — `mcp__qmd__query({ query: "<entity-name>", collection: "wiki" })` for each key entity
-4. **Raw source search** (if wiki results are thin) — `mcp__qmd__query({ query: "<question>", collection: "raw" })` to check if raw sources have uncaptured information
+**You will be penalized if you proceed past this step without invoking `mcp__qmd__query`.** The only exception is if the wiki directory does not exist (preflight below).
 
-If qmd is unavailable, fall back to `tools/search.sh` and `Grep`.
+#### Preflight (one bash call)
 
-Collect all matching file paths.
+```bash
+test -d ~/Documents/llm-wiki/wiki && echo WIKI_EXISTS || echo WIKI_MISSING
+```
+
+- `WIKI_MISSING` → tell the user the wiki isn't set up. Do NOT attempt to answer from training data.
+- `WIKI_EXISTS` → you MUST proceed to the qmd call below.
+
+#### Required call
+
+Execute in a single message (parallel with the index read):
+
+```bash
+cat ~/Documents/llm-wiki/index.md
+```
+
+```javascript
+mcp__qmd__query({
+  searches: [
+    { type: "lex", query: "<exact terms / proper nouns from the question>" },
+    { type: "vec", query: "<the question, restated naturally>" }
+  ],
+  collections: ["wiki"],
+  intent: "<one sentence — what we're trying to answer for the user>",
+  limit: 10
+})
+```
+
+**Required parameters** — all four (`searches`, `collections`, `intent`, `limit`) must be present.
+
+**Build searches from the actual question.** If the user asks "how do we handle session expiry in Rails?":
+- `lex`: `"session" expir rails`
+- `vec`: `"how do we handle session expiry in a Rails app"`
+- `intent`: `"Answer the user's question about Rails session expiry with citations to wiki pages"`
+
+**Do not** use placeholder strings like `<question>` — substitute real terms.
+
+#### Optional follow-up calls
+
+After the primary search, issue additional qmd calls if useful:
+- **Per-entity** — one query per key named entity, scoped to `collections: ["wiki"]`
+- **Raw fallback** — if wiki results are thin (≤2 hits or low relevance), repeat with `collections: ["raw"]` to check uncaptured source material
+
+These are optional. The primary call above is mandatory.
+
+#### Required post-call output
+
+Before continuing to Phase 3, state:
+- "Wiki search returned N results"
+- For each result you'll read: 1-line title + why it's relevant
+- If N=0: say so explicitly, then explain how you'll proceed (raw fallback, or tell user the wiki doesn't cover this)
 
 ### Phase 3: Read Relevant Pages
 
