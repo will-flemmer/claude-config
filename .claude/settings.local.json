@@ -46,7 +46,9 @@
       "Bash(qmd --version)",
       "Bash(qmd mcp *)",
       "Bash(qmd --help)",
-      "Bash(claude mcp *)"
+      "Bash(claude mcp *)",
+      "Bash(bash -n /Users/williamflemmer/Documents/claude-config/commands/review-pr/setup-worktree.sh)",
+      "Bash(bash -n /Users/williamflemmer/Documents/claude-config/commands/create-pr/detect-base.sh)"
     ],
     "deny": [],
     "ask": []
