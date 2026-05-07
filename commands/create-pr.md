@@ -69,15 +69,25 @@ Rules:
 - Unfillable sections: `N/A — <one-line reason>`. Don't delete the section.
 - Issue refs (`#123`, `Fixes #...`, `JIRA-456`): include only if present in commits or branch name.
 
-**Tone and length — keep it tight.** PR descriptions are read by reviewers in 30 seconds. Default each filled section to bullets, not paragraphs.
+**Tone and length — keep it tight.** PR descriptions are read by reviewers in 30 seconds. Reviewers read the diff for *what* changed; the description is for the *why* and anything not obvious from the diff.
 
+**Overview / Summary section: 1-2 sentences. Hard cap.** State what the PR does and why, and stop. Do NOT add:
+- Implementation bullets listing the new files / hooks / functions — the diff shows that.
+- "Out of scope" / "follow-up" disclaimers unless a reviewer would otherwise expect that work in this PR.
+- Tracking issue links unless they appeared in commits or the branch name (see Issue refs rule above).
+- A "Stacked on #N" line — the create-pr script already prints this separately, and the base branch makes it self-evident.
+- Restating context the title already conveys.
+
+Other sections:
 - Bullets over prose. One line per point.
 - ≤4 bullets per section. If you have more, the change is too big for one PR or the bullets are too granular.
-- No restating what the diff already shows ("Modified `foo.ts` to add a function called `bar`" — the diff says that).
+- No restating what the diff already shows ("Modified `foo.ts` to add a function called `bar`" — the diff says that). This applies especially to a "Changes" / "Implementation" section: if every bullet is a paraphrase of the diff, delete the section.
 - No marketing tone ("This PR introduces a powerful new...", "We've enhanced..."). Just state what changed and why.
 - No emojis, no horizontal rules, no decorative headers added beyond the template.
 - Code blocks only when a name/signature/command is essential. ≤6 lines.
 - Test plan: concrete commands or steps a reviewer can run, not "tested locally."
+
+**Before writing each section, ask: "Is this information visible in the diff or title?" If yes, cut it.**
 
 **Title** (under 70 chars, no trailing period): match the repo's commit style — check `git log --oneline -20` on BASE for Conventional Commits / case / mood.
 

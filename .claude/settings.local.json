@@ -48,7 +48,10 @@
       "Bash(qmd --help)",
       "Bash(claude mcp *)",
       "Bash(bash -n /Users/williamflemmer/Documents/claude-config/commands/review-pr/setup-worktree.sh)",
-      "Bash(bash -n /Users/williamflemmer/Documents/claude-config/commands/create-pr/detect-base.sh)"
+      "Bash(bash -n /Users/williamflemmer/Documents/claude-config/commands/create-pr/detect-base.sh)",
+      "Bash(gh repo *)",
+      "Bash(gh api *)",
+      "Bash(/Users/williamflemmer/Documents/claude-config/update_root_config.sh)"
     ],
     "deny": [],
     "ask": []
