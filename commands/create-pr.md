@@ -69,12 +69,35 @@ Rules:
 - Unfillable sections: `N/A — <one-line reason>`. Don't delete the section.
 - Issue refs (`#123`, `Fixes #...`, `JIRA-456`): include only if present in commits or branch name.
 
+### Linking a GitHub issue from conversation context
+
+If the conversation context references a specific GitHub issue this PR relates to (e.g. the user mentioned an issue URL/number, or the work was kicked off from `/implement-gh-issue`), link it as the **first line of the Overview/Summary section**, followed by a blank line, then the summary text.
+
+Decide between `Resolves` and `Ref` by comparing the diff against the issue's scope (fetch with `gh issue view <num> --json title,body,state`):
+
+- **`Resolves <full-issue-url>`** — when this PR fully addresses the issue's acceptance criteria. The issue would be closeable on merge. GitHub auto-closes the issue when the PR merges.
+- **`Ref <full-issue-url>`** — when the PR is related to the issue but does not fully resolve it (partial fix, prerequisite work, tangential improvement, fixes one of several sub-tasks).
+
+When uncertain, prefer `Ref` — it's reversible (the user can edit to `Resolves` later); `Resolves` will auto-close an issue that may still have open work.
+
+Format (matches https://github.com/PlayerData/app/pull/11836):
+
+```markdown
+## Overview
+
+Resolves https://github.com/owner/repo/issues/123
+
+<1-2 sentence summary of what the PR does and why>
+```
+
+Use the **full URL**, not `#123` shorthand — it renders consistently across forks and external viewers. Do not add this line if no issue is referenced in conversation context; do not invent one.
+
 **Tone and length — keep it tight.** PR descriptions are read by reviewers in 30 seconds. Reviewers read the diff for *what* changed; the description is for the *why* and anything not obvious from the diff.
 
 **Overview / Summary section: 1-2 sentences. Hard cap.** State what the PR does and why, and stop. Do NOT add:
 - Implementation bullets listing the new files / hooks / functions — the diff shows that.
 - "Out of scope" / "follow-up" disclaimers unless a reviewer would otherwise expect that work in this PR.
-- Tracking issue links unless they appeared in commits or the branch name (see Issue refs rule above).
+- Tracking issue links unless they appeared in commits, the branch name, or conversation context (see Issue refs and "Linking a GitHub issue" rules above).
 - A "Stacked on #N" line — the create-pr script already prints this separately, and the base branch makes it self-evident.
 - Restating context the title already conveys.
 
