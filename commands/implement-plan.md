@@ -40,6 +40,13 @@ model: claude-opus-4-7
    ```
    ↳ ALWAYS verify before claiming work is done
 
+5. **Final adversarial gate (after tests/lint pass):**
+   ```
+   Skill({ skill: "adversarial-plan-review" })
+   ```
+   ↳ MANDATORY final step — dispatches adversarial subagent to hunt for plan-vs-implementation gaps. Fix any HIGH findings before claiming complete.
+   ↳ **Skip condition**: If `SKIP_ADVERSARIAL_REVIEW=1` is set in the environment, skip this step entirely.
+
 **⚠️ STOP - Did you invoke the skills above? If not, DO IT NOW before continuing!**
 
 ---
@@ -188,9 +195,54 @@ Skill({ skill: "superpowers:requesting-code-review" })
 
 If the reviewer finds issues: fix them, re-run tests, and re-verify before finalizing.
 
-**8. Finalize Session**
+**8. Adversarial Plan Review (MANDATORY FINAL GATE)**
+
+> **Skip condition**: Before running this step, check the environment variable `SKIP_ADVERSARIAL_REVIEW`. If it is set to `1`, skip this entire step (including the fix-loop) and proceed directly to step 9. Log in the session context that the adversarial review was skipped by env var.
+
+After step 7 passes, invoke the adversarial review as the final verification gate:
+```
+Skill({ skill: "adversarial-plan-review" })
+```
+↳ Dispatch a fresh adversarial subagent that reads the plan + diff cold and actively hunts for gaps between what the plan asked for and what the implementation delivers. Distinct from step 7: step 7 looks at code quality across the diff; this step asks "did we actually deliver the plan, and what edge cases were missed?"
+
+**Invocation requirements** (per the skill):
+- Pass the **plan file path** (the `{{plan_file_path}}` argument to this command)
+- Pass the **base branch** for the diff (default: `master` or whichever branch the task started from)
+- Pass the **verification commands** (`just test`, `just lint`)
+
+**Fix-loop (REQUIRED if any HIGH findings):**
+
+The adversarial review is report-only — the calling agent (you) must act on its findings. Apply this loop:
+
+```
+WHILE the adversarial review returns HIGH findings:
+  1. Surface the FULL findings report to the user (do not summarize away)
+  2. For each HIGH finding:
+     - Read the cited file:line to confirm the finding is real (not hallucinated)
+     - If real: fix it (write tests first if a behavior gap, then implement)
+     - If hallucinated: note it and skip
+     - If genuinely disputable: surface to user for decision before proceeding
+  3. Re-run verification: `just test` + `just lint` on changed files
+  4. Re-dispatch adversarial review on the NEW diff
+  5. (update context: adversarial review iteration N, findings addressed, current state)
+
+UNTIL the review returns either:
+  - Zero HIGH findings, OR
+  - Only HIGH findings the user has explicitly accepted
+```
+
+**Cap**: If the loop runs 3 times without converging, STOP and surface the situation to the user — repeated HIGH findings suggest a design issue that needs human judgment, not another fix iteration.
+
+**MEDIUM findings**: surface to the user as part of the final report. Do not auto-fix; let the user decide whether to address now, defer, or accept.
+
+**LOW findings**: include in the final report. Default to deferring unless trivially fixable.
+
+⚠️ **DO NOT proceed to step 9 while HIGH findings remain unresolved.** This is a hard gate. A passing test suite is not "done" if the adversarial review finds the plan's acceptance criteria were missed.
+
+**9. Finalize Session**
 - Set status to "Completed" in context
-- Update final quality gates checklist
+- Update final quality gates checklist (must include: adversarial review passed)
+- Record adversarial review iteration count and final verdict in context
 - (update context: current state, agent activity log)
 
 ## TDD Methodology
@@ -242,7 +294,8 @@ Implementation complete when:
 - ✅ Final verification: all tests pass across all waves
 - ✅ Linting clean for all changed files
 - ✅ Cross-wave code review passed (no integration issues)
-- ✅ Session context updated with final status
+- ✅ **Adversarial plan review passed** — zero HIGH findings OR all HIGH findings explicitly accepted by user (skipped if `SKIP_ADVERSARIAL_REVIEW=1`)
+- ✅ Session context updated with final status (including adversarial review iteration count, or skip reason)
 
 **Testing Strategy**: Each subagent runs only its related tests during TDD. Integration tests run between waves. Full test suite runs at final verification.
 
