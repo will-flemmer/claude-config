@@ -2,7 +2,7 @@
 description: Process a new source (URL, file, pasted content) into the LLM wiki
 argument-hint: <source-path-or-url>
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, mcp__qmd__query
-model: claude-opus-4-7
+model: claude-opus-4-6
 ---
 
 # wiki-ingest

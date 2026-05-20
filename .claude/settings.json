@@ -45,6 +45,28 @@
             "command": "echo 'Please read and familiarize yourself with the project guidelines in @README.md before beginning work.'"
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "git rev-parse --git-dir >/dev/null 2>&1 && code-review-graph status --repo \"/Users/williamflemmer/Documents/claude-config\" || echo 'Not a git repo, skipping'",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "git rev-parse --git-dir >/dev/null 2>&1 && code-review-graph update --skip-flows --repo \"/Users/williamflemmer/Documents/claude-config\" || true",
+            "timeout": 30
+          }
+        ]
       }
     ]
   }

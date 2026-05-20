@@ -1,659 +1,197 @@
 ---
 description: Analyze tasks and create actionable implementation plans with codebase + wiki research
 argument-hint: <task-description>
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, mcp__qmd__query, mcp__sequential-thinking__sequentialthinking
-model: claude-opus-4-7
+allowed-tools: Read, Write, Edit, Bash, mcp__qmd__query, mcp__sequential-thinking__sequentialthinking, mcp__code-review-graph__semantic_search_nodes_tool, mcp__code-review-graph__query_graph_tool, mcp__code-review-graph__get_architecture_overview_tool, mcp__code-review-graph__list_communities_tool, mcp__code-review-graph__get_impact_radius_tool, mcp__code-review-graph__find_large_functions_tool
+model: claude-opus-4-6
 ---
 
-# plan-task
+# plan-task — Execution Procedure
 
-**EXECUTION**: Main Claude agent (no routing)
-**PURPOSE**: Analyze tasks and create actionable implementation plans
+**DO NOT call `EnterPlanMode`.** This command produces task files, not a plan-mode session.
 
----
-
-## 🚨 CRITICAL: DO NOT ENTER PLAN MODE 🚨
-
-**This command creates task files as output. You must NOT use the `EnterPlanMode` tool.**
-
-- **DO**: Create `tasks/session_context_<session_id>.md` and `tasks/<name>_<session_id>.md` files
-- **DO NOT**: Call `EnterPlanMode` - this command IS the planning process
-- **DO NOT**: Ask for permission to enter plan mode
-
-The deliverable is the task file itself, not a plan mode session.
+Reference material (examples, templates, troubleshooting): `commands/plan-task/reference.md`
 
 ---
 
-## 🚨 MANDATORY SKILL INVOCATIONS - DO THESE FIRST 🚨
+## Tool Priority
 
-**BEFORE doing ANYTHING else, invoke these skills:**
+**Graph tools are your PRIMARY codebase discovery mechanism.**
 
-1. **About to read/search 2+ files?**
-   ```
-   Skill({ skill: "parallel-execution-patterns" })
-   ```
-   ↳ Executes reads/searches in parallel (5-8x faster)
+| Priority | Tools | Use for |
+|----------|-------|---------|
+| 1st | `semantic_search_nodes_tool`, `query_graph_tool`, `get_architecture_overview_tool` | All codebase discovery, API lookup, relationship tracing |
+| 2nd | `Read` | Reading specific files after graph identifies them |
+| 3rd | `Bash` with `grep`/`find` | ONLY when graph has no coverage (config files, string literals, unindexed content) |
 
-**⚠️ STOP - Did you invoke the skills above? If not, DO IT NOW before continuing!**
+**Grep and Glob are NOT in allowed-tools.** Use `Bash` grep as a last resort only.
 
 ---
 
-## Context7: External Library Documentation
+## Execution Steps
 
-**When to use**: If the task involves external libraries (React, Next.js, Prisma, tRPC, etc.) and you need current API documentation to plan correctly.
+Execute these steps in order. Each step lists the exact tool calls to make.
 
-**How to use**:
-```javascript
-// 1. Resolve library ID
-mcp__context7__resolve-library-id({ libraryName: "prisma" })
+### Step 1 — Session Setup
 
-// 2. Fetch docs (optional topic filter, default 5000 tokens)
-mcp__context7__get-library-docs({
-  context7CompatibleLibraryID: "<resolved-id>",
-  topic: "migrations",  // optional
-  tokens: 5000          // optional, adjust for detail level
+Generate session ID from today's date: `plan_YYYYMMDD_HHMMSS`
+
+Create two files (use templates from `commands/plan-task/templates/`):
+- `tasks/session_context_<session_id>.md`
+- `tasks/<descriptive-name>_<session_id>.md`
+
+### Step 2 — Clarifying Questions
+
+Ask 3-5 questions if the task is vague (< 25 words, unclear scope, missing constraints).
+Skip if the task is specific and well-defined.
+
+### Step 3 — Parallel Discovery (ONE message, ALL calls)
+
+Issue ALL of these in a single message:
+
+```
+mcp__code-review-graph__get_architecture_overview_tool({})
+
+mcp__code-review-graph__semantic_search_nodes_tool({
+  query: "<keywords from task>",
+  limit: 20
 })
-```
 
-**Use cases in planning**:
-- Verify library APIs exist before suggesting their use
-- Check for deprecated methods/patterns
-- Get current best practices for implementation guidance
-- Understand library constraints that affect architecture decisions
-
-**Skip if**: Task only involves internal code or well-known stable APIs.
-
----
-
-## What This Does
-1. **Analyzes** requirements and existing codebase
-2. **Discovers & verifies** available APIs before suggesting their use
-3. **Validates** technical assumptions using Explore agent
-4. **Breaks down** work into 3-7 subtasks with complexity estimates
-5. **Identifies** dependencies and execution order
-6. **Computes execution waves** — groups independent subtasks for parallel implementation
-7. **Provides** implementation guidance grounded in verified code
-
-## Key Features
-- **API verification** - every suggested API has file:line reference or marked "needs creation"
-- **Explore agent validation** - technical assumptions verified before finalizing plan
-- **Parallel execution** for 5-8x faster codebase analysis
-- **Context integration** for multi-agent workflows
-- **Complexity scoring** (Simple/Medium/Complex)
-- **Dependency mapping** for optimal execution sequencing
-- **Execution waves** — topological sort of subtasks into parallel-dispatchable groups for `implement-plan`
-
-**Configuration & Templates**: `~/.claude/commands/plan-task/`
-
-## Usage
-
-```bash
-plan-task [OPTIONS] <task_description>
-plan-task [OPTIONS] --interactive
-```
-
-## Parallel Execution Strategy
-
-**CRITICAL**: Use parallel tool calls for 5-8x performance improvement.
-
-### Pattern
-Execute multiple tool calls in a single message for independent operations.
-
-### When to Use
-- **File discovery + reading**: Find files, then read relevant ones
-- **Multi-file analysis**: Read related files simultaneously
-- **Independent operations**: Any operations without dependencies
-
-### Performance Example
-```
-Sequential:  5 files × 8 sec = 40 seconds
-Parallel:    5 files in 1 call = 8 seconds (5x faster)
-```
-
-### Anti-Pattern (DO NOT DO)
-Execute operations sequentially when they could be parallelized.
-
-## Clarification Questions
-
-**CRITICAL**: Always consider asking clarifying questions before starting analysis. Better to ask upfront than make wrong assumptions.
-
-**When to Ask** (ask if ANY of these apply):
-- Task description < 25 words
-- Missing technical constraints or requirements
-- Unclear boundaries or scope
-- No mention of testing or quality requirements
-- Integration points not specified
-- Performance/scalability needs unclear
-- Success criteria not defined
-- ANY ambiguity about implementation approach
-
-**Question Categories** (ask 3-5 targeted questions):
-1. **Objective**: What problem are we solving? What's the desired outcome?
-2. **Scope**: What's included/excluded? What's the boundary?
-3. **Constraints**: Required technologies? Performance needs? Integration points?
-4. **Quality**: Testing requirements? Documentation needs?
-5. **Success**: How do we know when it's done? What are acceptance criteria?
-
-**Default Behavior**: When in doubt, ASK. It's always better to clarify than to plan incorrectly.
-
-The answers enrich the task context and ensure accurate planning.
-
-## Options
-
-- `-h, --help`: Show detailed help message with examples
-- `-i, --interactive`: Interactive mode for complex task planning with detailed requirements gathering
-- `--session-id <id>`: Use a specific session ID (default: auto-generated)
-
-## Context Management
-
-**MANDATORY**: Always create session context files for tracking.
-
-**Context File Creation**:
-1. Generate unique session ID: `plan_YYYYMMDD_HHMMSS` (use today's date from `<env>` + current time estimate, e.g., `plan_20251129_143022`)
-2. Create `tasks/session_context_<session_id>.md` immediately
-3. Create `tasks/<descriptive-name>_<session_id>.md` for task plan
-
-> **Note**: Generate the session ID directly from the date shown in `<env>` section (e.g., "Today's date: 2025-11-29") combined with an estimated time. No shell command needed.
-
-**Context Updates Required**:
-1. **After codebase discovery**: Add discovered architecture to Technical Decisions
-2. **After complexity analysis**: Update with findings and patterns
-3. **Before completion**: Final summary with:
-   - Current State: "Planning completed - [brief summary]"
-   - Technical Decisions: Architecture choices, patterns
-   - Activity Log: Complete analysis steps
-
-## Execution Workflow
-
-### 1. Context & Requirements Analysis
-- **Create session context files** (session_context and task_doc)
-- **Analyze task**: Extract objective, constraints, technologies
-- **Ask clarifying questions**: 3-5 targeted questions (see Clarification Questions section)
-
-### 2. Wiki Knowledge Search (MANDATORY — DO NOT SKIP)
-
-> ⚠️ **CRITICAL**: You MUST call `mcp__qmd__query` exactly once in this step before proceeding to step 3. This is non-negotiable. The wiki contains prior decisions, gotchas, and prior-art that will materially change your plan. Skipping this step has caused planning regressions in past sessions.
-
-**You will be penalized if you proceed past this step without invoking `mcp__qmd__query`.** Do not skip it on the basis that the task seems "purely codebase work" or "simple" — even mechanical tasks have hit prior gotchas captured in the wiki. The only exception is if the wiki directory does not exist (see preflight below).
-
-#### Preflight (one bash call)
-
-```bash
-test -d ~/Documents/llm-wiki/wiki && echo WIKI_EXISTS || echo WIKI_MISSING
-```
-
-- `WIKI_MISSING` → skip this step, note it in your output ("wiki not present at ~/Documents/llm-wiki — skipping prior-knowledge search").
-- `WIKI_EXISTS` → you MUST proceed to the qmd call below. No exceptions.
-
-#### Required call
-
-Issue this in the **same message** as your codebase discovery (step 3) — they run in parallel:
-
-```javascript
 mcp__qmd__query({
   searches: [
-    { type: "lex", query: "<exact terms / proper nouns from the task>" },
-    { type: "vec", query: "<the task restated as a natural-language question>" }
+    { type: "lex", query: "<exact terms from task>" },
+    { type: "vec", query: "<task as natural-language question>" }
   ],
   collections: ["wiki"],
-  intent: "<one sentence — what we're trying to learn from prior wiki notes>",
+  intent: "<what we want to learn from prior wiki notes>",
   limit: 10
 })
 ```
 
-**Required parameters** — all four (`searches`, `collections`, `intent`, `limit`) must be present. Do not omit `intent`; it materially improves reranking.
+Wiki preflight: run `test -d ~/Documents/llm-wiki/wiki && echo WIKI_EXISTS || echo WIKI_MISSING` first. Skip qmd if WIKI_MISSING.
 
-**Build the searches from the actual task.** If the user said "add Redis caching to the session endpoint":
-- `lex`: `"redis" "session" cache`
-- `vec`: `"how should we cache session data with Redis"`
-- `intent`: `"Find prior decisions about caching, Redis usage, or session storage in this codebase's documented history"`
+After results: state "Wiki search returned N results" and summarize relevant findings.
 
-**Do not** use placeholder strings like `<task description keywords>` — those are template hints, not actual queries. Substitute real terms from the task.
+### Step 4 — Read Project Docs
 
-#### After the call
+Read in parallel (single message): README.md, ARCHITECTURE.md, CONTRIBUTING.md, package.json — whichever exist.
 
-State explicitly in your planning output:
-- "Wiki search returned N results" (even if N=0)
-- For each relevant result: 1-line summary + how it informs the plan
-- If N=0 or nothing is relevant: say so explicitly — silence is indistinguishable from skipping the step
+### Step 5 — API Discovery (Graph)
 
-**What to look for**:
-- Prior decisions about similar architecture or patterns
-- Known gotchas with the technologies involved
-- Related entities (tools, libraries, frameworks) already documented
-- Relevant concepts (patterns, strategies) that apply to this task
+For each module/service the task will touch:
 
-**How to use wiki results**:
-- Incorporate relevant findings into the **Technical Decisions** section of session context
-- Reference wiki pages in subtask guidance (e.g., "See [wiki page](wiki/slug.md) for prior notes on X")
-- Flag contradictions between wiki knowledge and current codebase state
-- If the wiki has nothing relevant, skip — don't force it
-
-**Skip this step if**: The task is purely mechanical (rename, formatting) or the wiki doesn't exist.
-
-### 3. Codebase Discovery (Use Parallel Execution)
-**Find relevant files**:
-```bash
-find . -type f -name "*.ts" -o -name "*.js" | head -20
-grep -r "pattern" --include="*.ts"
 ```
+mcp__code-review-graph__query_graph_tool({
+  pattern: "file_summary",
+  target: "<file path from step 3 results>"
+})
 
-**Read key files in parallel** (single message with multiple Read calls):
-- README.md, ARCHITECTURE.md, CONTRIBUTING.md, package.json
+mcp__code-review-graph__query_graph_tool({
+  pattern: "tests_for",
+  target: "<module name>"
+})
 
-**Update context**: Add discovered architecture to `Technical Decisions`
-
-### 4. API & Interface Discovery
-
-**CRITICAL**: Before suggesting ANY API usage, verify it actually exists. Plans that suggest non-existent APIs are worse than no plan.
-
-**For each module/service you plan to use:**
-
-1. **Read the actual source file** - don't assume based on naming
-2. **List exported functions/classes** with their signatures
-3. **Note parameters and return types**
-4. **Flag anything that needs to be created**
-
-**Discovery approach** (execute in parallel):
-```javascript
-// Find service/module files
-Glob({ pattern: "**/services/**/*.ts" })
-Glob({ pattern: "**/lib/**/*.ts" })
-Glob({ pattern: "**/utils/**/*.ts" })
-
-// Search for specific functionality
-Grep({ pattern: "export (function|class|const)", path: "src/" })
-```
-
-**Then read and document available APIs:**
-```markdown
-## Verified Available APIs
-
-### src/services/UserService.ts
-- `getUserById(id: string): Promise<User>` ✅ EXISTS (line 45)
-- `updateUser(id: string, data: Partial<User>): Promise<User>` ✅ EXISTS (line 78)
-- `authenticate()` ❌ DOES NOT EXIST - needs creation
-
-### src/utils/validation.ts
-- `validateEmail(email: string): boolean` ✅ EXISTS (line 12)
-- `validatePhone()` ❌ DOES NOT EXIST - needs creation
-```
-
-**Rules:**
-- ✅ Every API you suggest MUST have a file:line reference OR be marked "needs creation"
-- ✅ Every import path MUST be verified to exist
-- ❌ NEVER suggest methods based on assumed naming conventions
-- ❌ NEVER assume a utility exists just because it would be convenient
-
-### 4. Validation Phase (Use Explore Agent)
-
-**MANDATORY**: After drafting implementation approach, validate technical assumptions.
-
-**Use Explore agent** for efficient validation without bloating main context:
-```javascript
-Task({
-  subagent_type: "Explore",
-  prompt: `Verify these APIs/modules exist in the codebase. Be thorough - check all naming variations.
-
-  APIs to verify:
-  1. [API or function name]
-  2. [Import path]
-  3. [Class or module]
-
-  For each item report:
-  - EXISTS: file path + line number + actual signature
-  - MISSING: not found after thorough search (checked: [locations searched])
-
-  Also check for similar existing implementations that could be extended.`
+mcp__code-review-graph__semantic_search_nodes_tool({
+  query: "<specific function or class name>",
+  kind: "Function",
+  limit: 10
 })
 ```
 
-**Update plan based on validation findings:**
-1. **Remove** suggestions for non-existent APIs
-2. **Add subtasks** for any APIs that need to be created
-3. **Adjust complexity** estimates (creating new APIs adds work)
-4. **Link to similar code** that can be used as reference
+Run multiple `query_graph` calls in parallel when they're independent.
 
-**Document validation results:**
-```markdown
-## Validation Results
+**Document every API as:**
+- `functionName` — `file:line` — signature ✅ EXISTS
+- `functionName` — ❌ MISSING — needs creation (add as subtask)
 
-### Verified to USE (exists)
-| API | Location | Signature |
-|-----|----------|-----------|
-| `getUserById` | `src/services/UserService.ts:45` | `(id: string) => Promise<User>` |
+### Step 6 — Validate Assumptions
 
-### Must CREATE (verified missing)
-| API | Suggested Location | Proposed Signature | Added as Subtask |
-|-----|-------------------|-------------------|------------------|
-| `authenticate` | `src/services/AuthService.ts` | `(creds: Credentials) => Promise<Token>` | Subtask 3 |
+For each API/import in your draft plan, confirm via graph:
 
-### Blocked/Unclear (cannot verify)
-| Assumption | Blocker | Resolution Needed |
-|------------|---------|-------------------|
-| Redis cache available | No redis config found | Ask user about infrastructure |
 ```
+mcp__code-review-graph__semantic_search_nodes_tool({
+  query: "<API name>",
+  kind: "Function",
+  limit: 5
+})
 
-### 5-7. Analysis Phase (Use Sequential Thinking)
-
-**Use sequential thinking for task decomposition and analysis.**
-
-This ensures thorough reasoning about how to break down the work.
-
-```javascript
-mcp__sequential-thinking__sequentialthinking({
-  thought: "Analyzing task: [description]. I need to decompose this into implementable subtasks. Let me consider the logical components, dependencies, and risks.",
-  thoughtNumber: 1,
-  totalThoughts: 8,
-  nextThoughtNeeded: true
+mcp__code-review-graph__query_graph_tool({
+  pattern: "importers_of",
+  target: "<file path>"
 })
 ```
 
-**Required thinking steps:**
-
-**Step 1**: Component Identification
-- What are the logical components of this task?
-- What functionality needs to be built?
-- What are the boundaries of each component?
-
-**Step 2**: Decomposition Strategy
-- What's the simplest way to break this down?
-- Are subtasks right-sized? (not too big, not too small)
-- Is each subtask independently testable?
-
-**Step 3**: Complexity Assessment
-- Simple: Single file, < 50 LOC, no dependencies
-- Medium: Multiple files, < 200 LOC, few dependencies
-- Complex: Many files, > 200 LOC, or intricate logic
-- Justify each complexity rating
-
-**Step 4**: Dependency Analysis
-- Which subtasks must complete first?
-- Which can run in parallel?
-- External dependencies (APIs, libraries)?
-- Are there hidden dependencies?
-- Do any subtasks modify the same files? (creates implicit dependency)
-
-**Step 4.5**: Execution Wave Computation
-- **Topological sort** subtasks by their "Depends on" fields into waves
-- **Wave 1**: All subtasks with no dependencies (run in parallel)
-- **Wave 2**: Subtasks that depend only on Wave 1 subtasks (run in parallel after Wave 1)
-- **Wave N**: Continue until all subtasks are assigned to a wave
-- **File conflict check**: If two subtasks in the same wave modify the same files, move one to the next wave
-- **Output**: Structured `## Execution Waves` section in the task document (see template)
-- **Fallback**: If all subtasks are linearly dependent, produce a single-subtask-per-wave plan (degrades to sequential)
-
-**Step 5**: Risk Identification
-- What could go wrong?
-- Which parts are most uncertain?
-- Where might estimates be wrong?
-- What needs user clarification?
-
-**Step 6**: Execution Order
-- Optimal sequence for implementation
-- Which tasks unblock others?
-- Where are the critical paths?
-
-**Step 7**: Testing Strategy
-- How will each subtask be tested?
-- What test patterns apply?
-- Are there integration testing needs?
-
-**Step 8**: Final Review
-- Is the decomposition complete?
-- Are all acceptance criteria clear?
-- Is the plan implementable?
-- Any revisions needed?
-
-**Output from sequential thinking:**
-
-**Subtasks** (3-7 subtasks, each with):
-- Clear objective
-- Acceptance criteria
-- Estimated complexity (with justification)
-- Dependencies (if any)
-
-**Execution order**: Optimal sequence with rationale
-
-**Implementation notes**:
-- Architecture decisions and rationale
-- Testing strategy
-- Risk areas requiring attention
-
-**Update context before completion**:
-```markdown
-Current State: Planning completed - [brief summary]
-Technical Decisions: [key architectural choices]
-Activity Log: [add entry with findings]
-```
-
-## Task File Structure
-
-The command generates two interconnected files:
-
-### 1. Session Context File (`tasks/session_context_<session_id>.md`)
-Tracks the workflow state and execution progress:
-- Objective and workflow type
-- Current state
-- Clarifications and Q&A
-- Discovered context sections
-- Execution activity log
-
-### 2. Task Documentation File (`tasks/<descriptive-name>_<session_id>.md`)
-Contains the actual task breakdown and plan:
-- Task objective and description
-- Task breakdown and subtasks
-- Implementation steps
-- **Existing code patterns and examples** (similar tests, implementations, patterns)
-- Success criteria
-- Links to session context
-
-## Examples
-
-### Basic Usage
-
+If graph returns nothing for something you expect to exist, THEN use `Bash` grep:
 ```bash
-# Simple task with clear description
-plan-task "Implement user authentication with OAuth2 support for GitHub and Google providers"
-
-# Expected:
-# 1. Creates session context file
-# 2. Reads README.md, ARCHITECTURE.md, AI_CONTRIBUTING.md IN PARALLEL to understand project structure
-# 3. Searches IN PARALLEL for similar authentication tests and OAuth patterns in codebase
-# 4. Generates structured task plan with subtasks and pattern links
-# Output: Task plan created at tasks/user_authentication_oauth2_20251010_143022_12345.md
-#   - Includes links to similar test files (e.g., src/auth/auth.spec.ts)
-#   - Includes links to existing OAuth implementations
-#   - Includes links to authentication utilities
+grep -rn "functionName" --include="*.ts" src/
 ```
 
-### Interactive Mode
+Record results in Validation Results table (see task_doc template).
 
-```bash
-# Complex task needing detailed clarification
-plan-task --interactive "Build a notification system"
+### Step 7 — Decompose (Sequential Thinking)
 
-# Expected:
-# - Asks clarifying questions about scope, dependencies, technical constraints
-# - Creates enriched session context with Q&A
-# - Reads documentation and searches patterns IN PARALLEL
-# - Generates comprehensive task breakdown
+Use `mcp__sequential-thinking__sequentialthinking` for 8 thinking steps:
+
+1. Component identification
+2. Decomposition into 3-7 subtasks
+3. Complexity assessment (Simple / Medium / Complex)
+4. Dependency analysis
+5. Execution wave computation (topological sort — no two subtasks in same wave modify same files)
+6. Risk identification
+7. Testing strategy
+8. Final review
+
+### Step 8 — Write Task Files
+
+Populate both files with all findings:
+
+**Task doc** must include:
+- Verified Technical Foundation (EXISTS / MISSING / BLOCKED tables)
+- Subtasks with: objective, depends-on, reference file:line, tests, done-when
+- Execution Waves section
+- External dependencies
+
+**Session context** must include:
+- Clarifications
+- Technical decisions from discovery
+- Activity log of all steps taken
+
+### Step 9 — Pre-Mortem Review (Final Gate)
+
+Skip if `SKIP_PLAN_REVIEW=1`.
+
+Invoke `adversarial-plan-premortem` with the plan file path. This dispatches a fresh subagent that reads the plan cold and verifies every assumption against the actual codebase.
+
+**Revision loop**: while CRITICAL or HIGH findings remain:
+1. Read cited evidence to confirm finding is real (spot-check top 2)
+2. If real: revise the plan (fix phantom APIs, reorder waves, add missing subtasks)
+3. If hallucinated: skip
+4. Re-dispatch pre-mortem review on revised plan
+5. Cap at 2 iterations. If still unresolved, surface to user.
+
+MEDIUM findings: note as known risks in the plan. Don't block.
+LOW findings: include in report, defer.
+
+**After review**: append a `## Pre-Mortem Review` section to the plan document with the verdict and any remaining findings, so `implement-plan` has visibility.
+
+**Do NOT proceed past this step with unresolved CRITICAL findings.**
+
+### Step 10 — Output Summary
+
+Print:
+```
+✅ Task Plan Created
+Session: tasks/session_context_<id>.md
+Plan: tasks/<name>_<id>.md
+Subtasks: N | Complexity: X | Waves: Y
+Pre-mortem: <verdict — Sound / Revised / Needs attention>
 ```
 
-### Vague Task with Auto-Clarification
+---
 
-```bash
-# Incomplete/vague task description
-plan-task "Add some search features"
+## Rules
 
-# Expected:
-# - Detects vague description (under 20 words, contains "some")
-# - Automatically asks clarifying questions:
-#   * What specific search features? (keyword search, filters, facets?)
-#   * Where should search be added? (which pages/components?)
-#   * What content should be searchable?
-#   * Any performance or scalability requirements?
-# - Creates enriched context with answers
-# - Executes documentation reading and pattern searches IN PARALLEL
-# - Generates detailed task plan
-```
-
-## Integration with Other Commands
-
-### Consumed By
-
-- **implement-gh-issue**: Can read task plans to implement structured work
-- **create-gh-issue**: Can convert task plans into GitHub issues
-- **pr-checks**: Can validate implementation against task success criteria
-
-### File Paths
-
-All generated files are created in the **current project directory** (not ~/.claude/):
-- Session context: `tasks/session_context_<session_id>.md`
-- Task documentation: `tasks/<descriptive-name>_<session_id>.md`
-
-**IMPORTANT**: Create files relative to the project root, NOT in ~/.claude/tasks/.
-
-## Output Formats
-
-### Human-Readable Output
-
-```
-✅ Task Plan Created Successfully
-
-Session ID: plan_20251010_143022
-Session Context: tasks/session_context_plan_20251010_143022.md
-Task Plan: tasks/user_authentication_oauth2_plan_20251010_143022.md
-
-📋 Task Summary:
-- Task complexity: Medium
-- Subtasks identified: 5
-- Implementation steps: 12
-- Estimated effort: 3-5 days
-
-🔗 Files:
-- Session Context: tasks/session_context_plan_20251010_143022.md
-- Task Plan: tasks/user_authentication_oauth2_plan_20251010_143022.md
-```
-
-## Requirements
-
-### System Dependencies
-
-- **Git**: For repository detection and working directory context
-- **jq**: JSON processing for configuration
-- **date**: Not required - timestamps generated from `<env>` context
-
-### Permissions
-
-- **File System Access**: Write access to tasks/ directory
-- **Task Files**: Permission to create markdown files in tasks/ directory
-
-### Environment
-
-- Must be run from within a git repository (or specify working directory)
-- tasks/ directory must exist or be creatable
-- Network connectivity not required (local operation only)
-
-## Error Handling
-
-- **Empty task description**: Prompts for meaningful task description
-- **Missing tasks/ directory**: Creates directory automatically
-- **File write failures**: Clear error messages with permission checks
-- **Execution failures**: Graceful error reporting with retry suggestions
-
-## Implementation
-
-### File Structure
-
-```
-commands/plan-task/
-├── templates/
-│   ├── session_context.md      # Session context file template
-│   └── task_doc.md             # Task documentation template
-├── lib/                        # (Reserved for future helper scripts)
-└── config.json                 # Configuration for clarification questions and templates
-```
-
-
-## Troubleshooting
-
-### Common Issues
-
-#### "tasks/ directory not found"
-
-```bash
-# Create tasks directory
-mkdir -p tasks
-```
-
-#### "Session context file already exists"
-
-```bash
-# Use a different session ID or remove old file
-rm tasks/session_context_<old_id>.md
-```
-
-## Quality Standards
-
-### Input Validation
-
-- **Non-empty descriptions**: Task description must have meaningful content
-- **Character limits**: Descriptions should be between 10-1000 characters
-- **Clarity checks**: Automatically triggers clarification for vague inputs
-
-### Output Quality
-
-- **Structured format**: Session context and task docs follow consistent templates
-- **Absolute paths**: All file references use full absolute paths
-- **Activity tracking**: Complete log of analysis steps in session context
-- **Actionable subtasks**: Each subtask is concrete and implementable
-
-## Execution Requirements
-
-**MANDATORY**: This command MUST follow these execution guidelines:
-
-### Required Steps
-
-1. **Clarifying questions** - ask 3-5 targeted questions if ANY triggers apply (see "When to Ask" section)
-2. **Context file creation** - always create session context files before starting analysis
-3. **Parallel operations** - always use parallel tool calls for independent operations (documentation reading, pattern searches)
-4. **API discovery** - verify all APIs/modules exist before suggesting their use
-5. **Validation phase** - use Explore agent to validate technical assumptions
-6. **Context updates** - update both session context and task documentation files with findings
-7. **Pattern discovery** - include links to similar code patterns found in the codebase
-
-### Compliance Checklist
-
-When executing this command:
-
-**Setup & Context**
-- [ ] Clarifying questions asked if ANY "When to Ask" triggers apply
-- [ ] Session context file is created with unique session ID
-- [ ] Task documentation file is initialized
-
-**Discovery & Parallel Execution**
-- [ ] Documentation files read IN PARALLEL (single message, multiple Read calls)
-- [ ] Pattern searches executed IN PARALLEL (single message, multiple Grep/Glob calls)
-
-**API & Technical Validation (CRITICAL)**
-- [ ] Every suggested API verified with file:line reference OR marked "needs creation"
-- [ ] Every import path verified to exist in codebase
-- [ ] No methods suggested based on assumed naming conventions
-- [ ] Explore agent used to validate technical assumptions
-- [ ] Validation results documented (EXISTS/MISSING/BLOCKED tables)
-- [ ] Missing APIs added as subtasks with complexity adjustment
-- [ ] Blocked assumptions flagged for user resolution
-
-**Execution Waves (CRITICAL for implement-plan performance)**
-- [ ] Subtasks sorted into execution waves via topological sort of dependencies
-- [ ] No two subtasks in the same wave modify the same files
-- [ ] `## Execution Waves` section populated in task documentation
-- [ ] Fallback: linear dependencies produce single-subtask-per-wave plan
-
-**Output Quality**
-- [ ] Both session context and task documentation files updated with findings
-- [ ] Existing code patterns and examples included in task documentation
-- [ ] All implementation steps reference verified existing code or explicitly marked new code
-
-This command delivers practical value for breaking down complex work into manageable, actionable components with maximum performance through parallel execution and **verified technical foundations**.
+1. **Graph first, always.** Every codebase query starts with a graph tool. Bash grep is a last-resort fallback.
+2. **Parallel everything.** Independent tool calls go in one message.
+3. **Verify before suggesting.** Every API has a file:line or is marked MISSING.
+4. **No phantom APIs.** Never suggest methods based on naming conventions.
+5. **Wiki search is mandatory.** Unless ~/Documents/llm-wiki/wiki doesn't exist.

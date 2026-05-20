@@ -2,7 +2,7 @@
 description: Health-check the LLM wiki for structural and content issues
 argument-hint: [--fix]
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, mcp__qmd__query
-model: claude-opus-4-7
+model: claude-opus-4-6
 ---
 
 # wiki-lint

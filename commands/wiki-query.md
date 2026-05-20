@@ -2,7 +2,7 @@
 description: Answer questions from the LLM wiki with citations to source pages
 argument-hint: <question>
 allowed-tools: Read, Bash, Grep, Glob, mcp__qmd__query
-model: claude-opus-4-7
+model: claude-opus-4-6
 ---
 
 # wiki-query

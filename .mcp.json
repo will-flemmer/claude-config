@@ -23,7 +23,18 @@
     },
     "qmd": {
       "command": "qmd",
-      "args": ["mcp"]
+      "args": [
+        "mcp"
+      ]
+    },
+    "code-review-graph": {
+      "command": "uvx",
+      "args": [
+        "code-review-graph",
+        "serve"
+      ],
+      "cwd": "/Users/williamflemmer/Documents/claude-config",
+      "type": "stdio"
     }
   }
 }

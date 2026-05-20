@@ -2,7 +2,7 @@
 description: Run the Smoke Tests section of a PR description against a running local environment and report pass/fail/blocked inline
 argument-hint: [pr-number-or-url]
 allowed-tools: Read, Write, Edit, Bash(gh:*), Bash(git:*), Bash(curl:*), Bash(lsof:*), Bash(jq:*), Bash(test:*), Bash(ls:*), Bash(find:*), Bash(python:*), Bash(python3:*), Bash(bash:*), Bash(xcrun:*), Bash(rails:*), Bash(bin/rails:*), Bash(bin/rails runner:*), Glob, Grep, mcp__qmd__query, mcp__qmd__get
-model: claude-opus-4-7
+model: claude-opus-4-6
 ---
 
 # Smoke Test
@@ -20,6 +20,7 @@ This is **automated exploratory testing**, not a committed test suite. Nothing i
 - **Goals, not scripts.** Each smoke test is a past-tense claim ("Verified user can submit form"). Treat it as a goal — re-observe state between actions, use role/text locators, don't pre-resolve selectors.
 - **Three states only:** ✅ Pass / ❌ Fail / 🚫 Blocked. Never "flaky" or "partial". Blocked = environment problem (server down, sim won't boot). Fail = action ran, assertion failed.
 - **Evidence before claims.** A test only passes when you can quote the observable: URL, response body substring, DB row, on-screen text, screenshot path. No "looked fine".
+- **Screenshot every test.** Every test must produce a screenshot (or response dump for API-only) as proof. Read the screenshot to visually confirm before reporting.
 - **Auth once, reuse.** Set up the session once at the start of the run. Pass cookies/tokens into every subsequent test.
 - **Idempotent test data.** Any record you create gets a timestamp suffix (`Test Order 1714502345`). Never assert exact counts.
 - **Bounded retries.** Max 2 retries per step before marking the test blocked or failed.
@@ -188,7 +189,7 @@ For each test, capture:
   "claim": "<verbatim past-tense text>",
   "status": "pass" | "fail" | "blocked",
   "evidence": "<one-line concrete observable>",
-  "artifact": "<path to screenshot / log excerpt, if any>",
+  "artifact": "<path to screenshot — REQUIRED for every test>",
   "duration_s": <number>
 }
 ```
@@ -202,6 +203,23 @@ For each test, capture:
 **Re-observe before each action.** For Playwright: snapshot DOM/a11y after every navigation. For RN: take a fresh screenshot + accessibility tree dump before tapping. Never chain blind actions.
 
 **Self-verify each goal.** After executing, ask: "Does the current page/screen/response show evidence the claim is true?" Only that signal counts as Pass.
+
+### Mandatory screenshot evidence
+
+**Every smoke test MUST capture a screenshot as proof of completion, regardless of pass/fail/blocked status.** A test without a screenshot is incomplete.
+
+| Stack | How to capture |
+|-------|---------------|
+| React (web) | `page.screenshot(path="/tmp/smoke-<n>-evidence.png")` after final assertion |
+| React Native | `python ~/.claude/skills/ios-simulator-skill/scripts/screenshot.py --output /tmp/smoke-<n>-evidence.png` after final action |
+| Rails (API-only) | Screenshot not possible — save curl response body to `/tmp/smoke-<n>-evidence.txt` instead |
+| Rails (UI) | Same as React web — Playwright screenshot |
+
+**Naming convention:** `/tmp/smoke-<test-number>-evidence.png` (e.g., `/tmp/smoke-1-evidence.png`, `/tmp/smoke-2-evidence.png`)
+
+**Timing:** Capture the screenshot at the moment the claim is verifiable — after the final action completes and the expected state is visible. This is the proof that the test reached the right state.
+
+**Read each screenshot after capturing it** using the Read tool to visually confirm the evidence matches the claim. Do not trust the screenshot path alone — verify the content.
 
 ---
 
@@ -224,6 +242,7 @@ Print to the conversation (NOT to a file):
 
 1. <verbatim claim>
    *Evidence:* <one-line observable>
+   *Screenshot:* `/tmp/smoke-<n>-evidence.png`
 
 ### ❌ Failed
 
@@ -231,12 +250,13 @@ Print to the conversation (NOT to a file):
    *Last action:* <what you tried>
    *Expected:* <what the claim said>
    *Actual:* <what you observed>
-   *Artifact:* `/tmp/smoke-<n>.png` (if applicable)
+   *Screenshot:* `/tmp/smoke-<n>-evidence.png`
 
 ### 🚫 Blocked
 
 1. <verbatim claim>
    *Reason:* <env issue, timeout, exception>
+   *Screenshot:* `/tmp/smoke-<n>-evidence.png` (or N/A if environment never reached a capturable state)
 ```
 
 **Reporting rules:**
@@ -327,6 +347,7 @@ Inspect each test's wording. "API returns" / "endpoint" / "DB has" → Rails rec
 - Don't auto-start dev servers or simulators. Bail with a clear "blocked" message.
 - Don't paraphrase the smoke test claims in the report — quote verbatim.
 - Don't claim a test passed without a concrete observable. "It looked fine" is not evidence.
+- Don't skip the screenshot. Every test gets one — no exceptions. Read it to verify before reporting.
 - Don't keep retrying past 2 attempts. Mark blocked, move on.
 - Don't update PR checkboxes or push to the branch. Reporting only.
 - Don't run the project's full test suite (RSpec, jest, etc.) — that's CI's job.

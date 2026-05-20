@@ -2,7 +2,7 @@
 description: Review a GitHub PR for code quality, security, and best practices
 argument-hint: <pr-url> [--no-post] [--public]
 allowed-tools: Read, Write, Bash(gh:*), Bash(git:*), Bash(open:*), Bash(jq:*), Bash(mkdir:*), Bash(date:*), Bash(uuidgen:*), Bash(shasum:*), Bash(echo:*), Bash(cat:*), Bash(test:*), Bash(cd:*), Bash(pwd:*), Grep, Glob, mcp__sequential-thinking__sequentialthinking, mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__qmd__query
-model: claude-opus-4-5-20251101
+model: claude-opus-4-6
 ---
 
 # PR Review

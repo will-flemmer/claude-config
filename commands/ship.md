@@ -2,7 +2,7 @@
 description: Create a branch, commit changes (conventional commits), and open a draft PR
 argument-hint: [natural language flags, e.g. "without creating a branch" or "skip pr"]
 allowed-tools: Read, Bash(gh:*), Bash(git:*), Bash(ls:*), Bash(find:*), Bash(test:*), Bash(jq:*), Glob, Grep, Skill
-model: claude-opus-4-7
+model: claude-opus-4-6
 ---
 
 # Ship
@@ -85,21 +85,31 @@ If they don't push back, proceed. If they correct it, use their version (still v
 
 ## 3. Create branch (if `create-branch == true`)
 
-Skip this step if:
-- `create-branch == false`, OR
-- `ON_DEFAULT == false` (already on a feature branch — reuse it)
+Skip this entire step if `create-branch == false`.
 
-Otherwise, generate a branch name from the commit subject:
+**Branch name evaluation:**
+
+If `ON_DEFAULT == true`: must create a new branch (cannot commit on default).
+
+If `ON_DEFAULT == false`: check whether `CURRENT_BRANCH` describes the changes being shipped. Compare the branch name against the diff and commit subject. A branch is **non-descriptive** if it:
+- Is a generic name (e.g., `temp`, `wip`, `test`, `dev`, `my-branch`, `changes`)
+- Describes a different feature than what the diff actually contains
+- Is a leftover from a previous task that doesn't match the current changes
+
+If the current branch is descriptive of the changes: reuse it, skip branch creation.
+If the current branch is non-descriptive: create a new branch from the current one.
+
+**Branch name generation** (when creating):
 
 - Format: `<type>/<kebab-slug>`
-- Slug = subject after the colon, lowercased, non-alphanumerics → `-`, trimmed, max 50 chars
+- Slug = commit subject after the colon, lowercased, non-alphanumerics → `-`, trimmed, max 50 chars
 - Example: `feat: add /ship command for branch+commit+pr` → `feat/add-ship-command-for-branch-commit-pr`
 
 ```bash
 git checkout -b "$BRANCH_NAME"
 ```
 
-Print: `Branch: <name>`
+Print: `Branch: <name>` (or `Reusing branch: <name>` if kept)
 
 ---
 
@@ -151,6 +161,7 @@ End with a one-line summary:
 - Use `--no-verify`, `--force`, or rebase.
 - Amend a previous commit (always create a new one).
 - Commit on the default branch unless `create-branch == false` was explicitly set AND there's a clear reason (in which case, the stop condition above already blocked us — so really, just don't).
+- Add `Co-Authored-By` trailers to commits. The commit is the user's work — no co-author lines.
 - Use a commit prefix other than `fix:` or `feat:`. No `chore:`, `docs:`, `refactor:`, etc. — collapse those into `fix:` or `feat:` based on whether they fix existing behavior or add new behavior.
 - Pause for confirmation between steps once the user has approved the commit message. The pipeline runs straight through.
 - Fabricate test results or check statuses.

@@ -2,7 +2,7 @@
 description: Create a GitHub PR with a description filled from the repo's PR template
 argument-hint: [base-branch]
 allowed-tools: Read, Bash(gh:*), Bash(git:*), Bash(ls:*), Bash(find:*), Bash(test:*), Bash(jq:*), Glob, Grep
-model: claude-opus-4-7
+model: claude-opus-4-6
 ---
 
 # Create PR
@@ -64,117 +64,106 @@ Template precedence: `.github/pull_request_template.md` → `.github/PULL_REQUES
 
 Rules:
 - Preserve heading hierarchy, ordering, and HTML comments verbatim.
-- Be specific — file paths, function names, behavior changes. Not "updated some files."
 - Checkboxes: `[x]` only when verifiable from the diff.
-- Unfillable sections: `N/A — <one-line reason>`. Don't delete the section.
-- Issue refs (`#123`, `Fixes #...`, `JIRA-456`): include only if present in commits or branch name.
+- Unfillable sections: leave blank or don't check the box. Don't delete the section.
+- Issue refs: only if present in commits, branch name, or conversation context.
+
+### Writing style — match the author's voice
+
+**The PR author writes casual, terse descriptions. Match this tone exactly.**
+
+Study these real examples from the author's PRs:
+
+```
+save distribution times
+```
+```
+cleanup session models
+as well as some single session report code
+```
+```
+fetch data for the metric tiles
+```
+```
+add remaining filters to api, to be used in https://github.com/PlayerData/web/pull/3640
+```
+```
+add `filters` to flexible report charts. just added the `athlete_name` filter for now, but adding the others should be straightforward once this is in
+```
+
+**Key characteristics:**
+- Lowercase, no formal sentence structure — fragments are fine
+- Often just a phrase describing what changed: "save distribution times", "cleanup session models"
+- Mention the *next PR* or *companion PR* when relevant, casually inline
+- Only explain the *why* when it's non-obvious from the diff
+- Never list files, functions, or implementation details — the diff shows that
+- No marketing tone, no "This PR introduces...", no emoji, no decorative formatting
+- `ref` / `resolves` / `requires` links to issues — lowercase, at the start, no ceremony
+- Collapsible `<details>` blocks for diagrams or screenshots when useful, but only when they add real context
 
 ### Linking a GitHub issue from conversation context
 
-If the conversation context references a specific GitHub issue this PR relates to (e.g. the user mentioned an issue URL/number, or the work was kicked off from `/implement-gh-issue`), link it as the **first line of the Overview/Summary section**, followed by a blank line, then the summary text.
+If the conversation references a specific GitHub issue, link it as the first line of the Overview section.
 
-Decide between `Resolves` and `Ref` by comparing the diff against the issue's scope (fetch with `gh issue view <num> --json title,body,state`):
-
-- **`Resolves <full-issue-url>`** — when this PR fully addresses the issue's acceptance criteria. The issue would be closeable on merge. GitHub auto-closes the issue when the PR merges.
-- **`Ref <full-issue-url>`** — when the PR is related to the issue but does not fully resolve it (partial fix, prerequisite work, tangential improvement, fixes one of several sub-tasks).
-
-When uncertain, prefer `Ref` — it's reversible (the user can edit to `Resolves` later); `Resolves` will auto-close an issue that may still have open work.
-
-Format (matches https://github.com/PlayerData/app/pull/11836):
+Use `resolves` (lowercase) when the PR fully addresses the issue, `ref` when partial. When uncertain, prefer `ref`. Use the full URL. Don't invent issue links.
 
 ```markdown
-## Overview
+### Overview
 
-Resolves https://github.com/owner/repo/issues/123
+resolves https://github.com/owner/repo/issues/123
 
-<1-2 sentence summary of what the PR does and why>
+save distribution times
 ```
 
-Use the **full URL**, not `#123` shorthand — it renders consistently across forks and external viewers. Do not add this line if no issue is referenced in conversation context; do not invent one.
+**Overview: 1-2 short sentences or fragments. That's it.** Do NOT add:
+- Implementation bullets
+- "Out of scope" / "follow-up" disclaimers
+- "Stacked on #N" lines
+- Anything the title or diff already conveys
 
-**Tone and length — keep it tight.** PR descriptions are read by reviewers in 30 seconds. Reviewers read the diff for *what* changed; the description is for the *why* and anything not obvious from the diff.
-
-**Overview / Summary section: 1-2 sentences. Hard cap.** State what the PR does and why, and stop. Do NOT add:
-- Implementation bullets listing the new files / hooks / functions — the diff shows that.
-- "Out of scope" / "follow-up" disclaimers unless a reviewer would otherwise expect that work in this PR.
-- Tracking issue links unless they appeared in commits, the branch name, or conversation context (see Issue refs and "Linking a GitHub issue" rules above).
-- A "Stacked on #N" line — the create-pr script already prints this separately, and the base branch makes it self-evident.
-- Restating context the title already conveys.
-
-Other sections:
-- Bullets over prose. One line per point.
-- ≤4 bullets per section. If you have more, the change is too big for one PR or the bullets are too granular.
-- No restating what the diff already shows ("Modified `foo.ts` to add a function called `bar`" — the diff says that). This applies especially to a "Changes" / "Implementation" section: if every bullet is a paraphrase of the diff, delete the section.
-- No marketing tone ("This PR introduces a powerful new...", "We've enhanced..."). Just state what changed and why.
-- No emojis, no horizontal rules, no decorative headers added beyond the template.
-- Code blocks only when a name/signature/command is essential. ≤6 lines.
-- Test plan: concrete commands or steps a reviewer can run, not "tested locally."
-
-**Before writing each section, ask: "Is this information visible in the diff or title?" If yes, cut it.**
+**Other sections:** keep them equally terse. One line per bullet, ≤4 bullets. Cut anything the diff already shows.
 
 **Title** (under 70 chars, no trailing period): match the repo's commit style — check `git log --oneline -20` on BASE for Conventional Commits / case / mood.
 
-### Smoke Tests section (always included)
+### Smoke Tests section
 
-After the rest of the template is filled, **append a `## Smoke Tests` section at the end of the body** (or replace any existing "Smoke Tests" / "Smoke test" section if the template has one). This section is mandatory — even when N/A.
+If the repo's template already has a Smoke Tests section, fill it in place. Otherwise append one at the end. This section is for the PR author to tick off as they manually verify.
 
-**Framing.** This is a verification log the PR *author* (the user) fills in by ticking checkboxes as they manually verify. It is NOT a script for the reviewer to run. Write each item past tense, as a claim of what was verified — leave the checkbox empty so the user can tick it once they've confirmed.
+**Match the author's casual style.** Study these real smoke test entries:
 
-**Format:**
-
-```markdown
-## Smoke Tests
-
-- [ ] <one short past-tense sentence: what was verified>
-- [ ] <one short past-tense sentence>
-- [ ] <one short past-tense sentence> (optional third)
+```
+- [x] distributions created via admin have times persisted
+- [x] distributions created via web app have times persisted
+```
+```
+- [x] works with https://github.com/PlayerData/web/pull/3640
+```
+```
+- [x] can create flexible report & distribution via graphiql
+- [x] can update flexible report & distribution via graphiql
+- [x] errors get returned via graphiql
+```
+```
+- [x] CI
+```
+```
+- [x] unit tests
+```
+```
+- [x] red -> green unit test reproducing the bug
+```
+```
+- [x] averages & person bests get pulled through to the report correctly
 ```
 
-**Rules:**
-
-- **2-3 items max.** This is smoke, not full QA. Cover the golden path + 1 obvious edge case. Don't enumerate every branch.
-
-- **Past tense, one short sentence each.** "Verified that X" / "Confirmed that Y" / "Tapping Z routes to ...". No bold labels, no headers, no multi-clause descriptions. Aim for ≤25 words. Shared preconditions (seed account, env, fixture) go on a single `**Setup:**` line above the list.
-
-- **Empty checkbox each (`- [ ]`).** Always unchecked when generating the PR. The user is the one who has actually run the verification and will check them in the GitHub UI.
-
-- **A smoke test verifies feature behavior end-to-end against a running system.** It is *not* "ran the test suite" — that's CI's job. Forbidden:
-  - "Ran `pnpm jest`", "Ran `pytest`", "Ran `cargo test`", `npm test`, `rspec`, etc.
-  - "Linter passes", "typecheck passes"
-  - "CI is green"
-  - Anything that just re-runs existing test files
-  
-  If the diff only adds unit tests with no runnable behavior change, see the N/A clause below.
-
-- **Verifiable in development, not "post-merge".** Frame items as something the user can do *now* on a dev build / sim / console. Mark "post-deploy" only when the behavior genuinely cannot run locally:
-  - External webhook to a public URL (Stripe, GitHub)
-  - Cron / scheduled job that only runs in production
-  - Feature flag flippable only in a prod admin tool
-  - Requires production-scale data or prod-only third-party integration
-  
-  **Not** acceptable reasons: "needs API + seed data" (dev API + seed is fine), "needs staging" (dev build pointing at staging is fine), "easier post-merge" (laziness).
-
-- **Each item names a concrete observable.** UI state, route, DB record, log line, response shape. Not "verified it works."
-
-- **State preconditions explicitly.** Name the seed script (`bin/rails db:seed`, `pnpm seed:demo`), fixture file, env var, or test account (`coach@playerdata.dev`). "Requires seed data" is not a precondition.
-
-- **Ground in the stack you discovered in step 2** — use the project's actual dev-server command, console, simulator, etc. Rails repos use `bin/rails console` + `curl`. Next.js uses `npm run dev` + browser. Xcode uses the simulator.
-
-- **N/A when truly non-runnable** — only for diffs with no exercisable behavior: docs-only, formatting, type-only refactors, dep bumps without behavior change, internal renames. Write:
-  ```markdown
-  ## Smoke Tests
-
-  N/A — <one-line reason>. Verified via: <CI-green | rendered docs page | typecheck command>.
-  ```
-  Adding unit tests does NOT qualify as N/A — if there's new behavior, exercise it end-to-end.
-
-**Examples by stack** (illustrative — adapt to what the diff actually changes):
-
-- **Rails API** — `curl -X POST localhost:3000/api/sessions -H 'Content-Type: application/json' -d '{"email":"x@y.com"}'` → 201 response; in `bin/rails console`: `Session.last.user.email == "x@y.com"`
-- **Next.js page** — `npm run dev`, navigate to `http://localhost:3000/checkout`, submit the form with valid card → order row appears in `orders` table (`select * from orders order by id desc limit 1`)
-- **iOS feature** — boot simulator, launch app, tap "Sign In," enter test creds → keychain entry appears (`security find-generic-password -a test`), API request fires (visible in proxy / log)
-- **Background job** — enqueue with `MyJob.perform_later(args)`, run worker (`bin/jobs run`), assert side effect (`SomeRecord.where(...).exists?`)
-- **CLI tool** — `bin/mytool --new-flag value` → expected stdout / file produced / exit code 0
+**Key characteristics:**
+- Lowercase fragments, casual tone — not formal past-tense sentences
+- "CI" and "unit tests" are perfectly valid items for small/internal changes
+- Links to companion PRs or CI runs are fine
+- Screenshots inline when they help (just paste the GitHub image link)
+- 1-4 items typically. One is fine for small changes.
+- Leave checkboxes **unchecked** (`- [ ]`) — the author ticks them after verifying
+- When the change has no runnable behavior (docs, cleanup, internal renames): `- [ ] CI` is fine
 
 ---
 
@@ -200,5 +189,5 @@ After creating, print:
 
 - Pause for confirmation.
 - Fabricate test results, screenshots, or issue links.
-- Add `Co-Authored-By` unless the template asks for it.
+- Add `Co-Authored-By` trailers to commits. No co-author lines, ever.
 - `--no-verify`, `--force`, or rebase.

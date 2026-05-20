@@ -2,7 +2,7 @@
 description: Extract learnings from the current conversation and ingest them into the wiki
 argument-hint: [topic]
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, mcp__qmd__query
-model: claude-opus-4-7
+model: claude-opus-4-6
 ---
 
 # wiki-capture

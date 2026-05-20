@@ -2,7 +2,7 @@
 description: Capture verdicts on AI review findings and distill lessons into the wiki
 argument-hint: <pr-url> [--public]
 allowed-tools: Read, Write, Edit, Bash(gh:*), Bash(git:*), Bash(jq:*), Bash(mkdir:*), Bash(date:*), Bash(ls:*), Bash(cat:*), Bash(test:*), Bash(echo:*), Bash(find:*), Bash(grep:*), Glob, Grep, mcp__qmd__query
-model: claude-opus-4-7
+model: claude-opus-4-6
 ---
 
 # Review Feedback

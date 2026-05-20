@@ -2,7 +2,7 @@
 description: Address and fix feedback/review comments on a GitHub PR
 argument-hint: <pr-url>
 allowed-tools: Read, Write, Edit, Bash(gh:*), Bash(git:*), Grep, Glob, mcp__sequential-thinking__sequentialthinking
-model: claude-opus-4-5-20251101
+model: claude-opus-4-6
 ---
 
 # Fix PR Feedback
@@ -321,9 +321,7 @@ git commit -m "Address PR review feedback
 - Fix [issue 1]
 - Fix [issue 2]
 - Add tests for [area]
-- Refactor [component] per review
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
+- Refactor [component] per review"
 
 # Push to PR branch
 git push
